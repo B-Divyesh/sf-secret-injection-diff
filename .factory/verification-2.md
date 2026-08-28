@@ -154,7 +154,7 @@ Recovery and boundaries also behave correctly:
 
 ## Live site, privacy, security, and performance
 
-- `git ls-remote origin refs/heads/main` and local `HEAD` both resolve to the candidate hash.
+- Before the verifier-only documentation commit, `git ls-remote origin refs/heads/main` and local `HEAD` both resolved to the candidate hash. The subsequent push changes only this report and the handoff.
 - Local production output and live bytes match for all five HTML files, hashed JS/CSS, three raster assets, favicon, Apple icon, robots, sitemap, and service worker.
 - `/opt/fleet/lib/verify-url.sh <url> <evidence-dir>` passes: HTTP 200, title/lang/main/h1/alt checks, zero console errors.
 - Desktop and 390 px pages have no document-level horizontal overflow. All five routes have one h1, one main, `lang=en`, titles, and no console/page/request errors.

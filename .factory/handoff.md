@@ -4,7 +4,7 @@
 
 **FAIL — do not release candidate `782493f2c332ae90e9aa0d673a78ee259335db5e`.**
 
-Tested live at `https://secret-injection-diff.sociobot.in` on 2026-08-28 UTC. The deployed HTML, scripts, styles, images, metadata files, and service worker match the local production build byte for byte. The remote `main` branch also points to the tested commit.
+Tested live at `https://secret-injection-diff.sociobot.in` on 2026-08-28 UTC. The deployed HTML, scripts, styles, images, metadata files, and service worker match the candidate's local production build byte for byte. Remote `main` pointed to the candidate before the verifier-only report push; that push changes no product code.
 
 ## Release blockers
 
