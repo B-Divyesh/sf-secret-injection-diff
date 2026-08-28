@@ -17,7 +17,7 @@
 ## Verification evidence
 
 - Clean clone: `/tmp/sid-polish3-final-V9flcC/repo` at `231865cd7d89c332fb854cef5913c51f2613ce2f` ran `npm ci`, then every exact command from `.factory/claims.json` separately. Result: 21/21 passed.
-- `npm test`: 9 Rust tests and 53 Playwright browser/integration tests passed.
+- `npm test`: 9 Rust tests and 54 Playwright browser/integration tests passed.
 - `npm run lint`: rustfmt, Clippy with `-D warnings`, and ESLint passed.
 - `npm run typecheck`: all Rust targets and features passed.
 - `npm run build`: produced `dist/site` and `dist/bin/secret-injection-diff`.

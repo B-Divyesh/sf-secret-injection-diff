@@ -30,6 +30,22 @@ test('every registered claim has exactly one tagged test', () => {
   }
 });
 
+test('human CLI output uses process and access language', () => {
+  const scan = run(['scan', 'examples/demo/after']);
+  const help = run(['--help']);
+  const demo = run(['demo']);
+  const workspace = demo.stdout.split('\n')[0].slice(demo.stdout.indexOf(':') + 1).trim();
+  const check = run(['check', join(workspace, 'after'), '--baseline', join(workspace, 'baseline.json')]);
+  const output = `${scan.stdout}\n${scan.stderr}\n${help.stdout}\n${help.stderr}\n${demo.stdout}\n${demo.stderr}\n${check.stdout}\n${check.stderr}`;
+  expect(scan.status).toBe(0);
+  expect(help.status).toBe(0);
+  expect(demo.status).toBe(0);
+  expect(check.status).toBe(2);
+  expect(output).toContain('secret access entries');
+  expect(output).toContain('unapproved process gained a secret name');
+  expect(output).not.toMatch(/\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|\bcredential\b/i);
+});
+
 test('@claim:adapters scans four supported configuration types', () => {
   const result = run(['scan', 'examples/demo/after', '--json']);
   expect(result.status).toBe(0);
