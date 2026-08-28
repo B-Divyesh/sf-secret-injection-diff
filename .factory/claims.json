@@ -81,7 +81,7 @@
     "claim": "The --redact option replaces secret names with stable hashes",
     "where": "README",
     "test": "npm test -- --grep @claim:redaction",
-    "sandbox": "run the bundled sample twice; assert stable tokens and no raw NPM_TOKEN"
+    "sandbox": "run the bundled sample twice and a temporary injection-path change; assert stable tokens and no raw secret name"
   },
   {
     "id": "isolated-demo",

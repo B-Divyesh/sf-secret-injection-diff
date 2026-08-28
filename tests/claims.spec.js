@@ -244,6 +244,22 @@ test('@claim:redaction replaces names in shared output', () => {
   expect(one.stdout).toBe(two.stdout);
   expect(one.stdout).not.toContain('NPM_TOKEN');
   expect(one.stdout).toMatch(/secret_[0-9a-f]{8}/);
+
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-redacted-change-'));
+  const before = join(sandbox, 'before');
+  const after = join(sandbox, 'after');
+  write(join(before, 'compose.yaml'), 'services:\n  api:\n    environment:\n      API_TOKEN: ${API_TOKEN}\n');
+  write(join(after, 'compose.yaml'), 'services:\n  api:\n    secrets:\n      - source: API_TOKEN\n        target: token\n');
+  const baseline = join(sandbox, 'baseline.json');
+  expect(run(['snapshot', before, '--output', baseline]).status).toBe(0);
+  const changed = run(['diff', after, '--baseline', baseline, '--json', '--redact']);
+  expect(changed.status).toBe(0);
+  expect(changed.stdout).not.toContain('API_TOKEN');
+  expect(JSON.parse(changed.stdout).injection_changes[0]).toEqual(expect.objectContaining({
+    secret: expect.stringMatching(/^secret_[0-9a-f]{8}$/),
+    before: ['environment'],
+    after: ['secret mount']
+  }));
 });
 
 test('@claim:isolated-demo uses a new temporary workspace', () => {
