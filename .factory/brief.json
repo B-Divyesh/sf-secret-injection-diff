@@ -1,0 +1,18 @@
+{
+  "slug": "secret-injection-diff",
+  "title": "Secret Injection Diff",
+  "summary": "Prove which processes gain secret names before a pull request merges.",
+  "territory": "devtools-data",
+  "artifact_class": "cli",
+  "user": "A developer using IDEs, CI, and deployment tools who needs to prove which process receives which secret names and whether that scope changed in a pull request.",
+  "smallest_useful_product": "Local CLI that parses declared env, Compose, CI, and Kubernetes manifests; reports only secret identifiers and recipient boundaries; fails CI when an undeclared recipient gains a secret.",
+  "non_goals": [
+    "Secret storage",
+    "Decryption",
+    "Secret value scanning",
+    "Agent monitoring",
+    "Outbound telemetry"
+  ],
+  "monetization": "free",
+  "constraints": "Never retain or transmit values; treat names as sensitive enough to redact in shared reports; require adapters rather than guessing arbitrary secret-manager semantics."
+}
