@@ -49,23 +49,24 @@
       </div>
       <figure class="hero-art">
         <img src="/assets/hero-conservatory.webp" srcset="/assets/hero-conservatory-640.webp 640w, /assets/hero-conservatory.webp 1200w" sizes="(max-width: 800px) calc(100vw - 32px), 53vw" width="1200" height="800" fetchpriority="high" alt="A cutaway conservatory shows glowing capsules routed into separate plant rooms.">
+        <figcaption>Secret names mapped to processes</figcaption>
         <span class="capsule" aria-hidden="true"></span>
       </figure>
     </section>
 
     <section class="section" aria-labelledby="preview-heading">
       <div class="shell">
-        <div class="section-heading"><p class="specimen">Specimen 02</p><div><h2 id="preview-heading">See which process gets a secret name before merge</h2><p>The check compares current secret access with a committed baseline.</p></div></div>
+        <div class="section-heading"><p class="specimen">Sample result</p><div><h2 id="preview-heading">See which process gets a secret name before merge</h2><p>The check compares current secret access with a committed baseline.</p></div></div>
         <div class="terminal-frame" aria-label="Recorded terminal output from the bundled demo">
-          <div class="terminal-bar"><span>release.yml / recipient diff</span><span class="terminal-dots" aria-hidden="true">● ● ●</span></div>
-          <pre data-terminal tabindex="0" aria-label="Recorded secret recipient diff" aria-live="polite"></pre>
+          <div class="terminal-bar"><span>release.yml / process access</span><span class="terminal-dots" aria-hidden="true">● ● ●</span></div>
+          <pre data-terminal tabindex="0" aria-label="Recorded secret access changes" aria-live="polite"></pre>
         </div>
       </div>
     </section>
 
     <section class="section" aria-labelledby="works-heading">
       <div class="shell">
-        <div class="section-heading"><p class="specimen">Field method</p><div><h2 id="works-heading">Review secret access in three commands</h2><p>The baseline stays in your repository beside the configuration it describes.</p></div></div>
+        <div class="section-heading"><p class="specimen">How it works</p><div><h2 id="works-heading">Review secret access in three commands</h2><p>The baseline stays in your repository beside the configuration it describes.</p></div></div>
         <ol class="three-steps">
           <li><h3>Scan configuration</h3><p>Read secret names from supported files and list each process that receives them.</p></li>
           <li><h3>Commit the baseline</h3><p>Review the JSON list once, then approve it with the pull request.</p></li>
@@ -76,8 +77,8 @@
 
     <section class="section" aria-labelledby="boundaries-heading">
       <div class="shell split">
-        <div><p class="specimen">Known terrain</p><h2 id="boundaries-heading">Supported files and limits</h2><ul class="plain-list"><li>.env and .env.*</li><li>Docker Compose</li><li>GitHub Actions</li><li>Kubernetes workloads</li></ul></div>
-        <div><p class="specimen">Outside the fence</p><h2>What it does not do</h2><ul class="plain-list"><li>It does not read secret stores.</li><li>It does not decrypt values.</li><li>It does not watch running processes.</li><li>It does not guess vendor behavior.</li></ul></div>
+        <div><p class="specimen">Supported files</p><h2 id="boundaries-heading">Supported files and limits</h2><ul class="plain-list"><li>.env and .env.*</li><li>Docker Compose</li><li>GitHub Actions</li><li>Kubernetes workloads</li></ul></div>
+        <div><p class="specimen">Limits</p><h2>What it does not do</h2><ul class="plain-list"><li>It does not read secret stores.</li><li>It does not decrypt values.</li><li>It does not watch running processes.</li><li>It does not guess vendor behavior.</li></ul></div>
       </div>
     </section>
 

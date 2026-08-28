@@ -7,11 +7,46 @@
     "sandbox": "bundled examples/demo/after directory; assert all four adapter names in JSON"
   },
   {
+    "id": "dotenv-capability",
+    "claim": "Scans .env and .env.* files for uppercase secret names",
+    "where": "README supported files",
+    "test": "npm test -- --grep @claim:dotenv-capability",
+    "sandbox": "temporary directory with .env, .env.production, .env.local, ignored invalid names, and an unrelated filename"
+  },
+  {
+    "id": "compose-capability",
+    "claim": "Scans Compose environment, scalar and list env_file, and short and long service secrets entries",
+    "where": "README supported files",
+    "test": "npm test -- --grep @claim:compose-capability",
+    "sandbox": "temporary Compose project containing every documented form and observable process access"
+  },
+  {
+    "id": "github-actions-capability",
+    "claim": "Scans GitHub Actions job env, step env, and reusable workflow secret inheritance",
+    "where": "README supported files",
+    "test": "npm test -- --grep @claim:github-actions-capability",
+    "sandbox": "temporary workflow with one secret name delivered by each documented form"
+  },
+  {
+    "id": "kubernetes-capability",
+    "claim": "Scans Kubernetes secretKeyRef, envFrom.secretRef, and mounted secret volumes in Pod templates",
+    "where": "README supported files",
+    "test": "npm test -- --grep @claim:kubernetes-capability",
+    "sandbox": "temporary Deployment with all three secret forms plus ConfigMap controls that must be ignored"
+  },
+  {
     "id": "scope-change",
     "claim": "Returns exit code 2 when a new recipient gains a secret name",
     "where": "landing page, demo, and README",
     "test": "npm test -- --grep @claim:scope-change",
-    "sandbox": "temporary directory copied from bundled before and after samples"
+    "sandbox": "temporary bundled before/after samples plus a negative Compose injection-path refactor using the same secret name and process"
+  },
+  {
+    "id": "same-recipient-injection-change-exit-zero",
+    "claim": "Changing how the same secret name reaches the same process is reported without failing the check",
+    "where": "README behavior note",
+    "test": "npm test -- --grep @claim:same-recipient-injection-change-exit-zero",
+    "sandbox": "temporary Compose baseline using environment and current file using a service secret mount for the same API_TOKEN and api process"
   },
   {
     "id": "check-no-change-exit-zero",
@@ -19,6 +54,13 @@
     "where": "README",
     "test": "npm test -- --grep @claim:check-no-change-exit-zero",
     "sandbox": "temporary sample project checked against a baseline made from the same files"
+  },
+  {
+    "id": "diff-addition-exit-zero",
+    "claim": "The diff command reports a new process without a failing exit code",
+    "where": "README",
+    "test": "npm test -- --grep @claim:diff-addition-exit-zero",
+    "sandbox": "temporary directory copied from bundled before and after samples; assert the addition and exit code 0"
   },
   {
     "id": "invalid-input-exit-one",

@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const binary = join(root, 'target/debug/secret-injection-diff');
 const run = (args, options = {}) => spawnSync(binary, args, { cwd: root, encoding: 'utf8', ...options });
+const write = (path, content) => {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, content);
+};
 const snapshotFiles = directory => Object.fromEntries(
   readdirSync(directory, { recursive: true, withFileTypes: true })
     .filter(entry => entry.isFile())
@@ -15,6 +19,16 @@ const snapshotFiles = directory => Object.fromEntries(
       return [path.slice(directory.length + 1), readFileSync(path, 'utf8')];
     })
 );
+
+test('every registered claim has exactly one tagged test', () => {
+  const claims = JSON.parse(readFileSync(join(root, '.factory/claims.json'), 'utf8'));
+  const source = readFileSync(join(root, 'tests/claims.spec.js'), 'utf8');
+  expect(new Set(claims.map(claim => claim.id)).size).toBe(claims.length);
+  for (const claim of claims) {
+    expect(claim.test).toBe(`npm test -- --grep @claim:${claim.id}`);
+    expect(source.split(`@claim:${claim.id}`).length - 1).toBe(1);
+  }
+});
 
 test('@claim:adapters scans four supported configuration types', () => {
   const result = run(['scan', 'examples/demo/after', '--json']);
@@ -36,7 +50,31 @@ test('@claim:scope-change exits 2 when a new recipient appears', () => {
   const result = run(['check', after, '--baseline', baseline]);
   expect(result.status).toBe(2);
   expect(result.stdout).toContain('+ NPM_TOKEN -> github:job/verify/step/Publish package');
-  expect(result.stdout).toContain('1 added, 0 removed');
+  expect(result.stdout).toContain('1 process added, 0 removed');
+
+  const refactorBefore = join(sandbox, 'refactor-before');
+  const refactorAfter = join(sandbox, 'refactor-after');
+  write(join(refactorBefore, 'compose.yaml'), 'services:\n  api:\n    environment:\n      API_TOKEN: ${API_TOKEN}\n');
+  write(join(refactorAfter, 'compose.yaml'), 'services:\n  api:\n    secrets:\n      - source: API_TOKEN\n        target: token\n');
+  const refactorBaseline = join(sandbox, 'refactor-baseline.json');
+  expect(run(['snapshot', refactorBefore, '--output', refactorBaseline]).status).toBe(0);
+  expect(run(['check', refactorAfter, '--baseline', refactorBaseline]).status).toBe(0);
+});
+
+test('@claim:same-recipient-injection-change-exit-zero keeps an approved process approved when its injection path changes', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-injection-change-'));
+  const before = join(sandbox, 'before');
+  const after = join(sandbox, 'after');
+  write(join(before, 'compose.yaml'), 'services:\n  api:\n    environment:\n      API_TOKEN: ${API_TOKEN}\n');
+  write(join(after, 'compose.yaml'), 'services:\n  api:\n    secrets:\n      - source: API_TOKEN\n        target: token\n');
+  const baseline = join(sandbox, 'baseline.json');
+  expect(run(['snapshot', before, '--output', baseline]).status).toBe(0);
+  const result = run(['check', after, '--baseline', baseline]);
+  expect(result.status).toBe(0);
+  expect(result.stdout).toContain('~ API_TOKEN -> compose:service/api');
+  expect(result.stdout).toContain('[environment:API_TOKEN -> secret mount:/run/secrets/token]');
+  expect(result.stdout).toContain('0 processes added, 0 removed; 1 injection path changed');
+  expect(result.stderr).not.toContain('check failed');
 });
 
 test('@claim:check-no-change-exit-zero exits 0 when access does not expand', () => {
@@ -47,7 +85,140 @@ test('@claim:check-no-change-exit-zero exits 0 when access does not expand', () 
   expect(run(['snapshot', project, '--output', baseline]).status).toBe(0);
   const result = run(['check', project, '--baseline', baseline]);
   expect(result.status).toBe(0);
-  expect(result.stdout).toContain('No secret recipient changes.');
+  expect(result.stdout).toContain('No secret access changes.');
+});
+
+test('@claim:diff-addition-exit-zero reports new process access without failing', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-diff-zero-'));
+  const before = join(sandbox, 'before');
+  const after = join(sandbox, 'after');
+  cpSync(join(root, 'examples/demo/before'), before, { recursive: true });
+  cpSync(join(root, 'examples/demo/after'), after, { recursive: true });
+  const baseline = join(sandbox, 'baseline.json');
+  expect(run(['snapshot', before, '--output', baseline]).status).toBe(0);
+  const result = run(['diff', after, '--baseline', baseline]);
+  expect(result.status).toBe(0);
+  expect(result.stdout).toContain('+ NPM_TOKEN -> github:job/verify/step/Publish package');
+  expect(result.stdout).toContain('1 process added, 0 removed');
+});
+
+test('@claim:dotenv-capability scans .env and .env.* files for uppercase secret names', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-dotenv-'));
+  write(join(sandbox, '.env'), 'ROOT_TOKEN=value\nlower_name=ignored\n');
+  write(join(sandbox, '.env.production'), 'export PROD_TOKEN=value\nINVALID-NAME=value\n');
+  write(join(sandbox, '.env.local'), 'LOCAL_TOKEN: value\n');
+  write(join(sandbox, 'env.ignored'), 'IGNORED_TOKEN=value\n');
+  const result = run(['scan', sandbox, '--json']);
+  expect(result.status).toBe(0);
+  const report = JSON.parse(result.stdout);
+  expect(report.edges.map(edge => [edge.secret, edge.source])).toEqual([
+    ['LOCAL_TOKEN', '.env.local'],
+    ['PROD_TOKEN', '.env.production'],
+    ['ROOT_TOKEN', '.env']
+  ]);
+  expect(result.stdout).not.toContain('lower_name');
+  expect(result.stdout).not.toContain('INVALID-NAME');
+  expect(result.stdout).not.toContain('IGNORED_TOKEN');
+});
+
+test('@claim:compose-capability scans environment, scalar and list env_file, and short and long secrets', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-compose-'));
+  write(join(sandbox, 'scalar.env'), 'SCALAR_TOKEN=value\n');
+  write(join(sandbox, 'list.env'), 'LIST_TOKEN=value\n');
+  write(join(sandbox, 'compose.yaml'), `services:
+  api:
+    environment:
+      API_TOKEN: \${SOURCE_TOKEN}
+    env_file: scalar.env
+    secrets:
+      - short-secret
+      - source: long-secret
+        target: long.pem
+  worker:
+    env_file:
+      - list.env
+`);
+  const result = run(['scan', sandbox, '--json']);
+  expect(result.status).toBe(0);
+  const edges = JSON.parse(result.stdout).edges;
+  expect(edges).toEqual(expect.arrayContaining([
+    expect.objectContaining({ secret: 'SOURCE_TOKEN', recipient: 'compose:service/api', injection: 'environment:API_TOKEN' }),
+    expect.objectContaining({ secret: 'SCALAR_TOKEN', recipient: 'compose:service/api', injection: 'env_file:scalar.env' }),
+    expect.objectContaining({ secret: 'LIST_TOKEN', recipient: 'compose:service/worker', injection: 'env_file:list.env' }),
+    expect.objectContaining({ secret: 'short-secret', recipient: 'compose:service/api', injection: 'secret mount:/run/secrets/short-secret' }),
+    expect.objectContaining({ secret: 'long-secret', recipient: 'compose:service/api', injection: 'secret mount:/run/secrets/long.pem' })
+  ]));
+});
+
+test('@claim:github-actions-capability scans job env, step env, and reusable workflow inheritance', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-github-'));
+  write(join(sandbox, '.github/workflows/release.yml'), `jobs:
+  build:
+    env:
+      BUILD_TOKEN: \${{ secrets.BUILD_TOKEN }}
+    steps:
+      - name: Publish
+        env:
+          NPM_TOKEN: \${{ secrets.NPM_TOKEN }}
+  deploy:
+    uses: example/repository/.github/workflows/deploy.yml@main
+    secrets: inherit
+`);
+  const result = run(['scan', sandbox, '--json']);
+  expect(result.status).toBe(0);
+  const edges = JSON.parse(result.stdout).edges;
+  expect(edges).toEqual(expect.arrayContaining([
+    expect.objectContaining({ secret: 'BUILD_TOKEN', recipient: 'github:job/build', injection: 'env:BUILD_TOKEN' }),
+    expect.objectContaining({ secret: 'NPM_TOKEN', recipient: 'github:job/build/step/Publish', injection: 'env:NPM_TOKEN' }),
+    expect.objectContaining({ secret: 'inherited-secrets/*', recipient: 'github:job/deploy', injection: 'reusable workflow secret inheritance' })
+  ]));
+});
+
+test('@claim:kubernetes-capability scans three secret forms and ignores ConfigMaps', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-kubernetes-'));
+  write(join(sandbox, 'deployment.yaml'), `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      volumes:
+        - name: credentials
+          secret:
+            secretName: mounted-secret
+      containers:
+        - name: app
+          env:
+            - name: API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: token
+                  name: api-secret
+            - name: APP_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: mode
+          envFrom:
+            - secretRef:
+                name: shared-secret
+            - configMapRef:
+                name: shared-config
+          volumeMounts:
+            - name: credentials
+              mountPath: /run/credentials
+`);
+  const result = run(['scan', sandbox, '--json']);
+  expect(result.status).toBe(0);
+  const edges = JSON.parse(result.stdout).edges;
+  expect(edges).toEqual(expect.arrayContaining([
+    expect.objectContaining({ secret: 'api-secret/token', injection: 'env:API_TOKEN' }),
+    expect.objectContaining({ secret: 'shared-secret/*', injection: 'envFrom:secretRef' }),
+    expect.objectContaining({ secret: 'mounted-secret/*', injection: 'secret volume:credentials' })
+  ]));
+  expect(result.stdout).not.toContain('app-config');
+  expect(result.stdout).not.toContain('shared-config');
 });
 
 test('@claim:invalid-input-exit-one exits 1 with a useful error for invalid input', () => {

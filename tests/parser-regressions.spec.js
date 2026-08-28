@@ -70,5 +70,5 @@ test('GitHub matrix entries do not move job-level secret recipients', () => {
   expect(run(['snapshot', before, '--output', baseline]).status).toBe(0);
   const result = run(['check', after, '--baseline', baseline]);
   expect(result.status).toBe(0);
-  expect(result.stdout).toContain('No secret recipient changes.');
+  expect(result.stdout).toContain('No secret access changes.');
 });

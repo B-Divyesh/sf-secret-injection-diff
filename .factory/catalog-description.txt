@@ -1,1 +1,1 @@
-Prove only approved processes gain secret names before merge.
+Prove which processes gain secret names before code merges.

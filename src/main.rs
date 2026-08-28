@@ -3,9 +3,9 @@ mod parsers;
 mod scan;
 
 use clap::{Args, Parser, Subcommand};
-use model::{DiffReport, Edge, Report};
+use model::{DiffReport, Edge, InjectionChange, Report};
 use scan::scan;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -28,13 +28,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// List secret-name to recipient edges in supported configuration files
+    /// List which processes get secret names in supported files
     Scan(ScanArgs),
-    /// Save the current approved graph as a JSON baseline
+    /// Save the current access list as an approved JSON baseline
     Snapshot(SnapshotArgs),
-    /// Compare the current graph with a baseline without failing on additions
+    /// Compare current access with a baseline without failing on additions
     Diff(CheckArgs),
-    /// Compare with a baseline and exit 2 when an unapproved edge appears
+    /// Compare with a baseline and exit 2 when a new process gets a secret name
     Check(CheckArgs),
     /// Run the bundled sample in a temporary directory
     Demo(OutputArgs),
@@ -67,7 +67,7 @@ struct CheckArgs {
     /// File or directory to scan
     #[arg(default_value = ".")]
     path: PathBuf,
-    /// Approved graph created by snapshot
+    /// Approved baseline created by snapshot
     #[arg(short, long, default_value = ".secret-injection-baseline.json")]
     baseline: PathBuf,
     #[command(flatten)]
@@ -121,15 +121,15 @@ fn print_report(report: &Report, args: &OutputArgs) -> Result<(), String> {
             serde_json::to_string_pretty(&shown).map_err(|error| error.to_string())?
         );
     } else if shown.edges.is_empty() {
-        println!("No secret recipient edges found.");
+        println!("No secret access found.");
         println!(
             "Add a supported .env, Compose, GitHub Actions, or Kubernetes file, then scan again."
         );
     } else {
         println!(
-            "{} secret recipient edge{}",
+            "{} secret access entr{}",
             shown.edges.len(),
-            if shown.edges.len() == 1 { "" } else { "s" }
+            if shown.edges.len() == 1 { "y" } else { "ies" }
         );
         for edge in shown.edges {
             println!(
@@ -163,13 +163,55 @@ fn read_baseline(path: &Path) -> Result<Report, String> {
     Ok(report)
 }
 
+fn access_by_process(report: &Report) -> BTreeMap<(String, String), Vec<&Edge>> {
+    let mut grouped = BTreeMap::<(String, String), Vec<&Edge>>::new();
+    for edge in &report.edges {
+        grouped
+            .entry((edge.secret.clone(), edge.recipient.clone()))
+            .or_default()
+            .push(edge);
+    }
+    grouped
+}
+
 fn compare(baseline: &Report, current: &Report) -> DiffReport {
-    let old: BTreeSet<_> = baseline.edges.iter().cloned().collect();
-    let new: BTreeSet<_> = current.edges.iter().cloned().collect();
+    let old = access_by_process(baseline);
+    let new = access_by_process(current);
+    let additions = new
+        .iter()
+        .filter(|(boundary, _)| !old.contains_key(*boundary))
+        .filter_map(|(_, edges)| edges.first().map(|edge| (*edge).clone()))
+        .collect();
+    let removals = old
+        .iter()
+        .filter(|(boundary, _)| !new.contains_key(*boundary))
+        .filter_map(|(_, edges)| edges.first().map(|edge| (*edge).clone()))
+        .collect();
+    let injection_changes = new
+        .iter()
+        .filter_map(|((secret, recipient), current_edges)| {
+            let baseline_edges = old.get(&(secret.clone(), recipient.clone()))?;
+            let before = baseline_edges
+                .iter()
+                .map(|edge| edge.injection.clone())
+                .collect::<BTreeSet<_>>();
+            let after = current_edges
+                .iter()
+                .map(|edge| edge.injection.clone())
+                .collect::<BTreeSet<_>>();
+            (before != after).then(|| InjectionChange {
+                secret: secret.clone(),
+                recipient: recipient.clone(),
+                before: before.into_iter().collect(),
+                after: after.into_iter().collect(),
+            })
+        })
+        .collect();
     DiffReport {
         schema: 1,
-        additions: new.difference(&old).cloned().collect(),
-        removals: old.difference(&new).cloned().collect(),
+        additions,
+        removals,
+        injection_changes,
         warnings: current.warnings.clone(),
     }
 }
@@ -187,6 +229,24 @@ fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
             schema: diff.schema,
             additions: diff.additions.iter().map(transform).collect(),
             removals: diff.removals.iter().map(transform).collect(),
+            injection_changes: diff
+                .injection_changes
+                .iter()
+                .map(|change| {
+                    let redact_injection =
+                        |value: &String| value.split(':').next().unwrap_or(value).to_string();
+                    if args.redact {
+                        InjectionChange {
+                            secret: stable_redaction(&change.secret),
+                            recipient: change.recipient.clone(),
+                            before: change.before.iter().map(redact_injection).collect(),
+                            after: change.after.iter().map(redact_injection).collect(),
+                        }
+                    } else {
+                        change.clone()
+                    }
+                })
+                .collect(),
             warnings: diff.warnings.clone(),
         };
         println!(
@@ -195,8 +255,8 @@ fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
         );
         return Ok(());
     }
-    if diff.additions.is_empty() && diff.removals.is_empty() {
-        println!("No secret recipient changes.");
+    if diff.additions.is_empty() && diff.removals.is_empty() && diff.injection_changes.is_empty() {
+        println!("No secret access changes.");
     } else {
         for edge in &diff.additions {
             let edge = transform(edge);
@@ -212,10 +272,44 @@ fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
                 edge.secret, edge.recipient, edge.injection
             );
         }
+        for change in &diff.injection_changes {
+            let secret = if args.redact {
+                stable_redaction(&change.secret)
+            } else {
+                change.secret.clone()
+            };
+            let shown_paths = |paths: &[String]| {
+                paths
+                    .iter()
+                    .map(|path| {
+                        if args.redact {
+                            path.split(':').next().unwrap_or(path).to_string()
+                        } else {
+                            path.clone()
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" | ")
+            };
+            println!(
+                "~ {} -> {}  [{} -> {}]",
+                secret,
+                change.recipient,
+                shown_paths(&change.before),
+                shown_paths(&change.after)
+            );
+        }
         println!(
-            "{} added, {} removed",
+            "{} process{} added, {} removed; {} injection path{} changed",
             diff.additions.len(),
-            diff.removals.len()
+            if diff.additions.len() == 1 { "" } else { "es" },
+            diff.removals.len(),
+            diff.injection_changes.len(),
+            if diff.injection_changes.len() == 1 {
+                ""
+            } else {
+                "s"
+            }
         );
     }
     for warning in &diff.warnings {
@@ -261,14 +355,12 @@ fn demo(args: &OutputArgs) -> Result<(), String> {
     let diff = compare(&baseline, &current);
     if !args.json {
         println!("Demo workspace: {}", root.display());
-        println!(
-            "The sample adds one release step recipient. Nothing here is saved to your project.\n"
-        );
+        println!("The sample adds one release process. Nothing here is saved to your project.\n");
     }
     print_diff(&diff, args)?;
     if !args.json {
         println!(
-            "\nExpected result: check would exit 2 for {} unapproved edge.",
+            "\nExpected result: check would exit 2 for {} unapproved process.",
             diff.additions.len()
         );
         println!("Baseline: {}", baseline_path.display());
@@ -302,9 +394,9 @@ fn run() -> Result<ExitCode, String> {
             fs::write(&args.output, content)
                 .map_err(|error| format!("cannot write {}: {error}", args.output.display()))?;
             println!(
-                "Saved {} approved edge{} to {}",
+                "Saved {} approved access entr{} to {}",
                 report.edges.len(),
-                if report.edges.len() == 1 { "" } else { "s" },
+                if report.edges.len() == 1 { "y" } else { "ies" },
                 args.output.display()
             );
             Ok(ExitCode::SUCCESS)
@@ -319,7 +411,7 @@ fn run() -> Result<ExitCode, String> {
             let failed = !diff.additions.is_empty();
             print_diff(&diff, &args.output)?;
             if failed {
-                eprintln!("check failed: an undeclared recipient gained a secret name");
+                eprintln!("check failed: an unapproved process gained a secret name");
                 Ok(ExitCode::from(2))
             } else {
                 Ok(ExitCode::SUCCESS)
@@ -372,6 +464,31 @@ mod tests {
             vec![],
         );
         assert_eq!(compare(&base, &current).additions.len(), 1);
+    }
+
+    #[test]
+    fn injection_change_keeps_the_same_process_approved() {
+        let base = Report::new(
+            vec![Edge {
+                secret: "TOKEN".into(),
+                recipient: "compose:service/api".into(),
+                injection: "environment:TOKEN".into(),
+                source: "compose.yml".into(),
+                adapter: "compose".into(),
+            }],
+            vec![],
+        );
+        let current = Report::new(
+            vec![Edge {
+                injection: "secret mount:/run/secrets/token".into(),
+                ..base.edges[0].clone()
+            }],
+            vec![],
+        );
+        let diff = compare(&base, &current);
+        assert!(diff.additions.is_empty());
+        assert!(diff.removals.is_empty());
+        assert_eq!(diff.injection_changes.len(), 1);
     }
 
     #[test]

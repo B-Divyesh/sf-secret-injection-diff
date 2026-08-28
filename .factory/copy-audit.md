@@ -1,6 +1,6 @@
 # Landing page copy audit
 
-Rechecked against perfection-loop round 2 on 2026-08-28. The core observable is always called a **secret name**; the landing page does not call it a credential or bare “names.”
+Rechecked against perfection-loop round 3 on 2026-08-28. The core observable is always called a **secret name**; visitor copy does not call it a credential, identifier, edge, or graph.
 
 Count method: whitespace-separated words. Labels and fragments are included because visitors read them as product copy.
 
@@ -19,14 +19,15 @@ Count method: whitespace-separated words. Labels and fragments are included beca
 | Reports secret names · never values | 6 | Pass |
 | Free · MIT licensed | 4 | Pass |
 | A cutaway conservatory shows glowing capsules routed into separate plant rooms. | 11 | Image alternative passes |
-| Specimen 02 | 2 | Section label |
+| Secret names mapped to processes | 5 | Figure caption |
+| Sample result | 2 | Section label |
 | See which process gets a secret name before merge | 9 | Pass |
 | The check compares current secret access with a committed baseline. | 10 | Pass |
-| release.yml / recipient diff | 4 | Output label |
-| 1 added, 0 removed | 4 | Output fragment |
-| check failed: an undeclared recipient gained a secret name | 9 | Real CLI output |
+| release.yml / process access | 4 | Output label |
+| 1 process added, 0 removed; 0 injection paths changed | 9 | Output fragment |
+| check failed: an unapproved process gained a secret name | 9 | Real CLI output |
 | exit 2 | 2 | Output fragment |
-| Field method | 2 | Section label |
+| How it works | 3 | Section label |
 | Review secret access in three commands | 6 | Pass |
 | The baseline stays in your repository beside the configuration it describes. | 11 | Pass |
 | Scan configuration | 2 | Pass |
@@ -35,13 +36,13 @@ Count method: whitespace-separated words. Labels and fragments are included beca
 | Review the JSON list once, then approve it with the pull request. | 12 | Pass |
 | Check every change | 3 | Pass |
 | Exit code 2 stops CI when a new process gets a secret name. | 13 | Pass |
-| Known terrain | 2 | Section label |
+| Supported files | 2 | Section label |
 | Supported files and limits | 4 | Pass |
 | .env and .env.* | 3 | File-type label |
 | Docker Compose | 2 | File-type label |
 | GitHub Actions | 2 | File-type label |
 | Kubernetes workloads | 2 | File-type label |
-| Outside the fence | 3 | Section label |
+| Limits | 1 | Section label |
 | What it does not do | 5 | Pass |
 | It does not read secret stores. | 6 | Pass |
 | It does not decrypt values. | 5 | Pass |
@@ -70,12 +71,13 @@ No line exceeds 22 words. No line contains a banned marketing word. The first sc
 | A supported configuration format | file type |
 | The isolated example | demo |
 
-Catalog description: “Prove which processes gain secret names before a pull request merges.” (69 characters)
+Catalog description: “Prove which processes gain secret names before code merges.” (57 characters)
 
 ## Error page
 
 | Copy | Words | Result |
 | --- | ---: | --- |
+| Error 404 | 2 | Plain status label |
 | Page not found | 3 | Plain heading; no product jargon |
 | The page may have moved, or the address may be wrong. | 11 | Pass |
 | Return home | 2 | Result-naming action |

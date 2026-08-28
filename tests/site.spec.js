@@ -4,8 +4,15 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
+const routes = [
+  { path: '/', title: 'Secret Injection Diff — track secret access', canonical: 'https://secret-injection-diff.sociobot.in/' },
+  { path: '/demo/?demo=1', title: 'Demo — Secret Injection Diff', canonical: 'https://secret-injection-diff.sociobot.in/demo/' },
+  { path: '/privacy/', title: 'Privacy — Secret Injection Diff', canonical: 'https://secret-injection-diff.sociobot.in/privacy/' },
+  { path: '/terms/', title: 'Terms — Secret Injection Diff', canonical: 'https://secret-injection-diff.sociobot.in/terms/' },
+  { path: '/404.html', title: 'Not found — Secret Injection Diff', canonical: 'https://secret-injection-diff.sociobot.in/404.html' }
+];
 
-for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
+for (const { path } of routes) {
   test(`${path} has the required document structure`, async ({ page }) => {
     const errors = [];
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -30,7 +37,7 @@ for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
   });
 }
 
-for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
+for (const { path } of routes) {
   test(`${path} has no serious mobile accessibility violations`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(path);
@@ -57,6 +64,42 @@ test('one-click demo query opens isolated sample mode with banner and reset', as
   await expect(page.locator('[data-terminal]')).toContainText('NPM_TOKEN');
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.locator('[data-demo-status]')).toHaveText('Demo reset. Sample data is ready.');
+});
+
+test('mobile demo shows the real command, result, and exit status in its first viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo/?demo=1');
+  const terminal = page.locator('[data-terminal]');
+  await expect(terminal).toContainText('NPM_TOKEN');
+  await expect(terminal).toContainText('exit 2');
+  const position = await terminal.evaluate(element => {
+    const bounds = element.getBoundingClientRect();
+    const lastLine = element.lastElementChild?.getBoundingClientRect();
+    return {
+      top: bounds.top,
+      lastLineBottom: lastLine?.bottom ?? bounds.bottom,
+      viewportHeight: window.innerHeight
+    };
+  });
+  expect(position.top).toBeLessThan(position.viewportHeight);
+  expect(position.lastLineBottom).toBeLessThanOrEqual(position.viewportHeight);
+});
+
+test('demo banner and sandbox controls stay visible after mobile scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo/?demo=1');
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const banner = page.locator('.demo-banner');
+  await expect(banner).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Start for real' })).toBeVisible();
+  const bounds = await banner.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    return { top: box.top, bottom: box.bottom, viewportHeight: window.innerHeight, position: getComputedStyle(element).position };
+  });
+  expect(bounds.position).toBe('sticky');
+  expect(bounds.top).toBeGreaterThanOrEqual(0);
+  expect(bounds.bottom).toBeLessThanOrEqual(bounds.viewportHeight);
 });
 
 test('root demo query enters sample mode directly', async ({ page }) => {
@@ -90,13 +133,27 @@ test('full-page navigation and browser Back focus and announce the destination h
   await expect(page.locator('[data-route-status]')).toHaveText('Prove which process gets each secret name');
 });
 
-test('landing copy uses secret name consistently and the 404 heading is plain', async ({ page }) => {
+test('visitor copy uses the defined product terms and the 404 heading is plain', async ({ page }) => {
   const landing = readFileSync(join(root, 'site/index.html'), 'utf8');
+  const demo = readFileSync(join(root, 'site/demo/index.html'), 'utf8');
+  const terms = readFileSync(join(root, 'site/terms/index.html'), 'utf8');
+  const script = readFileSync(join(root, 'site/main.js'), 'utf8');
+  const readme = readFileSync(join(root, 'README.md'), 'utf8');
   expect(landing).toContain('Prove which process gets each secret name');
   expect(landing).toContain('Reports secret names · never values');
-  expect(landing).not.toMatch(/credential|Reports names/i);
+  expect(`${landing}\n${demo}\n${terms}\n${script}\n${readme}`).not.toMatch(/\bcredential\b|Reports names|\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|runtime CDN/i);
   await page.goto('/404.html');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
+});
+
+test('every route has its exact title, canonical URL, and legal links', async ({ page }) => {
+  for (const route of routes) {
+    await page.goto(route.path);
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', route.canonical);
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy/');
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms/');
+  }
 });
 
 test('landing page fits a 390px viewport', async ({ page }) => {

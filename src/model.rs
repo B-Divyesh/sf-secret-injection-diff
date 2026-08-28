@@ -61,6 +61,16 @@ pub struct DiffReport {
     pub schema: u8,
     pub additions: Vec<Edge>,
     pub removals: Vec<Edge>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub injection_changes: Vec<InjectionChange>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub warnings: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct InjectionChange {
+    pub secret: String,
+    pub recipient: String,
+    pub before: Vec<String>,
+    pub after: Vec<String>,
 }

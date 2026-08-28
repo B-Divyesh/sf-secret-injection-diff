@@ -50,7 +50,7 @@ h3 { font-size: 26px; line-height: 1.12; }
 .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 40px 0 0; padding: 1px; list-style: none; background: var(--rule); }
 .facts li { min-height: 70px; padding: 15px; background: var(--night); font-size: 13px; display: flex; align-items: center; }
 .hero-art { position: relative; }
-.hero-art::before { content: 'FIG. 01 / RECIPIENT BOUNDARIES'; position: absolute; z-index: 2; top: 16px; left: -18px; padding: 7px 10px; background: var(--paper); color: #17200d; font-size: 11px; letter-spacing: .08em; }
+.hero-art figcaption { position: absolute; z-index: 2; top: 16px; left: -18px; padding: 7px 10px; background: var(--paper); color: #17200d; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .hero-art img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: 1px solid var(--rule); clip-path: polygon(0 0, 96% 0, 100% 7%, 100% 100%, 4% 100%, 0 93%); }
 .capsule { position: absolute; z-index: 3; width: 8px; height: 8px; border-radius: 50%; background: var(--acid); box-shadow: 0 0 12px var(--acid); left: 20%; top: 48%; animation: trace 2.4s cubic-bezier(.3,.7,.4,1) 1 both; }
 @keyframes trace { from { opacity: 0; transform: translateX(-80px); } 20% { opacity: 1; } to { opacity: 0; transform: translateX(310px); } }
@@ -84,7 +84,7 @@ pre { margin: 0; padding: 28px; overflow-x: auto; color: var(--ink); font: 14px/
 .footer-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; }
 .footer-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 20px; }
 .footer-links a { min-height: 44px; display: inline-flex; align-items: center; }
-.demo-banner { background: var(--acid); color: var(--acid-ink); }
+.demo-banner { position: sticky; z-index: 20; top: 0; background: var(--acid); color: var(--acid-ink); box-shadow: 0 1px 0 var(--night); }
 .banner-row { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .banner-row p { margin: 0; font-size: 13px; font-weight: 800; }
 .banner-actions { display: flex; gap: 16px; }
@@ -122,6 +122,15 @@ pre { margin: 0; padding: 28px; overflow-x: auto; color: var(--ink); font: 14px/
   .banner-row { align-items: flex-start; padding: 8px 0; flex-direction: column; gap: 0; }
   .page-hero { padding: 56px 0 48px; }
   .demo-stage { padding: 48px 0 88px; }
+  .demo-page .page-hero { padding: 20px 0 16px; }
+  .demo-page .page-hero .eyebrow { margin-bottom: 8px; }
+  .demo-page .page-hero h1 { max-width: 16ch; font-size: 36px; line-height: 1.02; }
+  .demo-page .page-hero .lede { margin-top: 10px; font-size: 16px; }
+  .demo-page .demo-stage { padding: 20px 0 88px; }
+  .demo-page .demo-stage > .specimen { margin-bottom: 8px; }
+  .demo-page .demo-stage > h2 { font-size: 30px; line-height: 1.05; }
+  .demo-page .demo-stage .terminal-frame { margin-top: 14px; }
+  .demo-page .demo-stage pre { padding: 16px; font-size: 12px; line-height: 1.55; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
