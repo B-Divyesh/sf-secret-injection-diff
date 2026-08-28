@@ -272,6 +272,13 @@ test('@claim:isolated-demo uses a new temporary workspace', () => {
   expect(first).toContain(tmpdir());
   expect(first).not.toContain(root);
   expect(result.stdout).toMatch(/expected result: check would exit 2/i);
+  const workspace = first.slice(first.indexOf(':') + 1).trim();
+  const recordedCheck = run(['check', join(workspace, 'after'), '--baseline', join(workspace, 'baseline.json')]);
+  const browserTranscript = readFileSync(join(root, 'site/main.js'), 'utf8');
+  expect(recordedCheck.status).toBe(2);
+  expect(browserTranscript).toContain('+ NPM_TOKEN -> github:job/verify/step/Publish package');
+  expect(browserTranscript).toContain('1 process added, 0 removed; 0 injection paths changed');
+  expect(browserTranscript).toContain(recordedCheck.stderr.trim());
   expect(snapshotFiles(samples)).toEqual(before);
 });
 
