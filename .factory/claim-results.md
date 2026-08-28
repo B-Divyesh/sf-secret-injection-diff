@@ -1,11 +1,13 @@
-# Claim verification — 2026-08-28 repair
+# Claim verification — 2026-08-28 perfection-loop round 1
 
-Every command in `.factory/claims.json` was run separately after a clean `npm ci`. Each command selected exactly one tagged test and passed.
+Every command in `.factory/claims.json` was run separately after `npm ci` in clean clone `/tmp/sid-polish-clean-jThVZQ` at commit `9cf68ab0f7ffad50a4a582ec5375c8d52ae1d881`. Each command selected exactly one tagged test and passed.
 
 | Claim | Result | Observable evidence |
 | --- | --- | --- |
 | `adapters` | Pass | Bundled output contains dotenv, Compose, GitHub Actions, and Kubernetes edges. |
 | `scope-change` | Pass | A new `NPM_TOKEN` recipient returns exit code 2. |
+| `check-no-change-exit-zero` | Pass | An unchanged sample checked against its own baseline returns exit code 0. |
+| `invalid-input-exit-one` | Pass | A missing path returns exit code 1 and an error naming the missing input. |
 | `values-excluded` | Pass | Known fixture values are absent from JSON output. |
 | `redaction` | Pass | Two runs produce the same hash and omit `NPM_TOKEN`. |
 | `isolated-demo` | Pass | The workspace is under the system temp directory and the project tree is unchanged. |
@@ -14,7 +16,8 @@ Every command in `.factory/claims.json` was run separately after a clean `npm ci
 | `free-mit` | Pass | The MIT license exists and the site has no payment path. |
 | `no-decryption-storage` | Pass | A sentinel value is absent from output; its source stays unchanged and no output file appears. |
 | `snapshot-only-write` | Pass | Scan/check/diff create no files; snapshot creates only the requested baseline. |
-| `site-data-free` | Pass | Five routes create no cookies, web storage, forms, account controls, analytics, or third-party requests. |
+| `site-data-free` | Pass | Five routes create no service worker, Cache Storage, cookies, web storage, forms, accounts, analytics, or third-party requests. |
+| `build-artifacts` | Pass | `npm run build` creates non-empty site and CLI outputs in both documented paths. |
 | `explicit-adapter-limits` | Pass | Vault and SOPS-style YAML produce no edges; source has no vendor adapter or process watcher. |
 
 The full suite also includes exact regressions for ConfigMap false positives, reordered `secretKeyRef`, scalar Compose `env_file`, long-form Compose secrets, and GitHub matrix recipient stability.

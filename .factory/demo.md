@@ -2,11 +2,12 @@
 
 ## Browser
 
-- URL: `https://secret-injection-diff.sociobot.in/demo/`
-- Local URL: `http://127.0.0.1:5173/demo/`
+- URL: `https://secret-injection-diff.sociobot.in/demo/?demo=1`
+- Shortcut URL: `https://secret-injection-diff.sociobot.in/?demo=1`
+- Local URL: `http://127.0.0.1:5173/demo/?demo=1`
 - State: bundled transcript in JavaScript memory only. There is no storage namespace because the recording accepts no user data.
 - Reset: select **Reset demo**. It restores the bundled transcript and status.
-- Start for real: select **Start for real** to reach the install command.
+- Start for real: select **Start for real** to reach and focus the install heading.
 
 ## CLI
 
