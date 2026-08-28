@@ -27,11 +27,11 @@ button, .button { min-height: 44px; font: inherit; }
 .shell { width: min(1184px, calc(100% - 40px)); margin-inline: auto; }
 .site-header { border-bottom: 1px solid var(--rule); }
 .nav-row { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.wordmark { color: var(--ink); display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; letter-spacing: -.04em; }
+.wordmark { min-height: 44px; color: var(--ink); display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; letter-spacing: -.04em; }
 .mark { width: 28px; height: 28px; position: relative; border: 1px solid var(--sage); transform: rotate(45deg); }
 .mark::after { content: ''; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--acid); left: 9px; top: 9px; }
 .nav-links { display: flex; align-items: center; gap: 24px; }
-.nav-links a { color: var(--sage); font-size: 14px; }
+.nav-links a { min-height: 44px; display: inline-flex; align-items: center; color: var(--sage); font-size: 14px; }
 .nav-links a[aria-current='page'] { color: var(--acid); text-decoration-thickness: 2px; }
 main { overflow: clip; }
 .hero { min-height: 720px; padding: 72px 0 96px; display: grid; grid-template-columns: minmax(0, .88fr) minmax(420px, 1.12fr); align-items: center; gap: 48px; }
@@ -78,10 +78,12 @@ pre { margin: 0; padding: 28px; overflow-x: auto; color: var(--ink); font: 14px/
 .install-code { margin-top: 32px; display: flex; align-items: stretch; gap: 8px; }
 .install-code code { flex: 1; padding: 14px 16px; background: #17200d; color: var(--paper); overflow-x: auto; white-space: nowrap; }
 .copy-button { border: 2px solid #17200d; background: transparent; color: #17200d; padding: 8px 14px; font-weight: 800; cursor: pointer; }
+.install-panel :focus-visible { outline-color: var(--night); }
 .copy-status { min-height: 24px; margin: 12px 0 0; }
 .site-footer { padding: 48px 0; border-top: 1px solid var(--rule); color: var(--sage); font-size: 13px; }
 .footer-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; }
 .footer-links { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 20px; }
+.footer-links a { min-height: 44px; display: inline-flex; align-items: center; }
 .demo-banner { background: var(--acid); color: var(--acid-ink); }
 .banner-row { min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 .banner-row p { margin: 0; font-size: 13px; font-weight: 800; }
@@ -101,7 +103,7 @@ pre { margin: 0; padding: 28px; overflow-x: auto; color: var(--ink); font: 14px/
 .not-found .number { font-family: var(--display); font-size: clamp(150px, 28vw, 360px); line-height: .7; color: var(--moss); text-shadow: 1px 1px 0 var(--sage); }
 @media (max-width: 800px) {
   .shell { width: min(100% - 32px, 680px); }
-  .nav-row { min-height: 64px; }
+  .nav-row { min-height: 64px; flex-wrap: wrap; padding-block: 8px; }
   .nav-links a:nth-child(3) { display: none; }
   .hero { min-height: 0; grid-template-columns: 1fr; padding: 56px 0 80px; gap: 56px; }
   h1 { font-size: clamp(48px, 15vw, 68px); }

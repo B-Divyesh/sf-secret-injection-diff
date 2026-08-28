@@ -9,11 +9,14 @@
     "build:cli": "cargo build --release && node scripts/copy-binary.mjs",
     "build": "npm run build:cli && npm run build:site",
     "test:cli": "cargo test && cargo build",
-    "test": "npm run test:cli && playwright test"
+    "test": "npm run test:cli && playwright test",
+    "typecheck": "cargo check --all-targets --all-features",
+    "lint": "cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && eslint ."
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
     "@playwright/test": "1.58.2",
+    "eslint": "10.9.1",
     "vite": "7.3.6"
   }
 }

@@ -4,7 +4,7 @@ Prove which processes gain secret names before a pull request merges.
 
 This local CLI is for developers reviewing environment scope across `.env`, Docker Compose, GitHub Actions, and Kubernetes files. It records recipient edges, compares them with an approved baseline, and returns exit code `2` when a new edge appears.
 
-The scanner does not decrypt or store secrets. Reports contain identifiers, recipients, and injection paths. Use `--redact` before sharing a report.
+The scanner does not decrypt or store secret values. Reports contain identifiers, recipients, and injection paths. Use `--redact` before sharing a report.
 
 ## Try the isolated demo
 
@@ -70,8 +70,10 @@ The CLI does not guess the behavior of Vault, SOPS, Doppler, 1Password, or cloud
 ## Develop and verify
 
 ```sh
-npm install
+npm ci
 npm test
+npm run typecheck
+npm run lint
 npm run build
 ```
 

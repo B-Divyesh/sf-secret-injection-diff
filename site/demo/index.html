@@ -16,7 +16,7 @@
     <section class="shell page-hero"><p class="eyebrow">Bundled sample / no setup</p><h1>Catch a new secret recipient</h1><p class="lede">This recorded run uses the same files as <code>secret-injection-diff demo</code>.</p></section>
     <section class="shell demo-stage" aria-labelledby="result-heading">
       <p class="specimen">Sample result</p><h2 id="result-heading">The publish step gains NPM_TOKEN</h2>
-      <div class="terminal-frame" aria-label="Recorded terminal output from the bundled demo"><div class="terminal-bar"><span>sample/.github/workflows/release.yml</span><span class="terminal-dots" aria-hidden="true">● ● ●</span></div><pre data-terminal aria-live="polite"></pre></div>
+      <div class="terminal-frame" aria-label="Recorded terminal output from the bundled demo"><div class="terminal-bar"><span>sample/.github/workflows/release.yml</span><span class="terminal-dots" aria-hidden="true">● ● ●</span></div><pre data-terminal tabindex="0" aria-label="Recorded secret recipient diff" aria-live="polite"></pre></div>
       <div class="demo-controls"><button class="button secondary" type="button" data-replay>Replay recorded check</button><span class="status" data-demo-status aria-live="polite">Sample data is loaded.</span></div>
       <div class="section-heading"><p class="specimen">What changed</p><div><h2>One process crossed the boundary</h2><p>The review step already had the name. The new publish step did not.</p></div></div>
       <ol class="three-steps"><li><h3>Before</h3><p>Only “Check package” receives NPM_TOKEN.</p></li><li><h3>After</h3><p>“Publish package” receives the same secret name.</p></li><li><h3>Result</h3><p>The check returns exit code 2 until the edge is approved.</p></li></ol>

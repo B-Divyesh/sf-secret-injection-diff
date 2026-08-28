@@ -43,7 +43,7 @@
   },
   {
     "id": "no-network",
-    "claim": "The CLI has no network client and the browser demo makes no third-party requests",
+    "claim": "The CLI has no network or telemetry client and the browser demo makes no third-party requests",
     "where": "landing page, privacy page, and README",
     "test": "npm test -- --grep @claim:no-network",
     "sandbox": "inspect CLI dependencies and capture every request in a fresh browser context"
@@ -54,5 +54,33 @@
     "where": "landing page, terms page, and README",
     "test": "npm test -- --grep @claim:free-mit",
     "sandbox": "fresh browser context and repository license file"
+  },
+  {
+    "id": "no-decryption-storage",
+    "claim": "The CLI does not decrypt or store secret values",
+    "where": "landing page, privacy page, and README",
+    "test": "npm test -- --grep @claim:no-decryption-storage",
+    "sandbox": "scan a temporary dotenv fixture; assert its value is absent from output, the fixture is unchanged, and no output file is created"
+  },
+  {
+    "id": "snapshot-only-write",
+    "claim": "The CLI writes a baseline only when snapshot is run",
+    "where": "privacy page and README",
+    "test": "npm test -- --grep @claim:snapshot-only-write",
+    "sandbox": "temporary project; assert scan creates nothing, snapshot creates only the requested baseline, and check/diff create nothing else"
+  },
+  {
+    "id": "site-data-free",
+    "claim": "The site has no analytics, cookies, accounts, forms, or browser data storage",
+    "where": "privacy page",
+    "test": "npm test -- --grep @claim:site-data-free",
+    "sandbox": "fresh browser context; visit every route and assert same-origin requests, no cookies/storage/forms/account controls, and no analytics scripts"
+  },
+  {
+    "id": "explicit-adapter-limits",
+    "claim": "The CLI does not read secret stores, watch processes, or infer vendor-specific configuration",
+    "where": "landing page, terms page, and README",
+    "test": "npm test -- --grep @claim:explicit-adapter-limits",
+    "sandbox": "temporary Vault and SOPS-style YAML; assert no edges, no process/network dependencies, and only documented adapters in source"
   }
 ]
