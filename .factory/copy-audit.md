@@ -84,3 +84,20 @@ Catalog description: “Check which processes get secret names before code merge
 | Page not found | 3 | Plain heading; no product jargon |
 | The page may have moved, or the address may be wrong. | 11 | Pass |
 | Return home | 2 | Result-naming action |
+
+## Terms page
+
+| Copy | Words | Result |
+| --- | ---: | --- |
+| Terms / effective 2026-08-28 | 3 | Current-page metadata, not a future promise |
+| Use the tool, verify the result | 6 | Plain heading |
+| Secret Injection Diff is free software provided under the MIT License. | 11 | Listed claim `free-mit` |
+| The CLI and website source are available under the MIT License in this repository. | 14 | Listed claim `free-mit` |
+| You decide which files to scan and which access changes to approve. | 13 | Plain responsibility statement |
+| Review the output before using it for an access decision. | 10 | Concrete instruction |
+| The software is provided “as is,” without warranty. | 8 | License summary |
+| The full license text controls if this summary differs from it. | 11 | Plain limitation |
+| The tool supports only the documented files. | 7 | Listed claim `explicit-adapter-limits` |
+| It does not prove runtime behavior or inspect a secret manager. | 11 | Listed claim `explicit-adapter-limits` |
+
+The Terms page makes no promise about future policy changes. Its effective date describes this published document only.

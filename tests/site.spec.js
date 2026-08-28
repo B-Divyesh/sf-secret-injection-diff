@@ -167,6 +167,12 @@ test('visitor copy uses the defined product terms and the 404 heading is plain',
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });
 
+test('terms state only present, observable policy information', () => {
+  const terms = readFileSync(join(root, 'site/terms/index.html'), 'utf8');
+  expect(terms).not.toContain('<h2>Changes</h2>');
+  expect(terms).not.toMatch(/Material changes will update|will update the effective date/i);
+});
+
 test('every route has its exact title, canonical URL, and legal links', async ({ page }) => {
   for (const route of routes) {
     await page.goto(route.path);
