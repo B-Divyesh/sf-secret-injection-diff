@@ -108,10 +108,9 @@ fn shown_report(report: &Report, redact: bool) -> Report {
     if !redact {
         return report.clone();
     }
-    Report::new(
-        report.edges.iter().cloned().map(redact_edge).collect(),
-        report.warnings.clone(),
-    )
+    let mut shown = report.clone();
+    shown.edges = shown.edges.into_iter().map(redact_edge).collect();
+    shown
 }
 
 fn print_report(report: &Report, args: &OutputArgs) -> Result<(), String> {

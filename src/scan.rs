@@ -49,8 +49,7 @@ fn collect(path: &Path, files: &mut Vec<PathBuf>, warnings: &mut Vec<String>) ->
 }
 
 fn is_dotenv(name: &str) -> bool {
-    name == ".env"
-        || (name.starts_with(".env.") && !name.ends_with(".example") && !name.ends_with(".sample"))
+    name == ".env" || name.starts_with(".env.")
 }
 
 fn is_compose(name: &str) -> bool {
@@ -94,7 +93,10 @@ pub fn scan(root: &Path) -> Result<Report, String> {
                 }
                 Err(error) => Err(error),
             }
-        } else if is_yaml(name) && source.starts_with(".github/workflows/") {
+        } else if is_yaml(name)
+            && (source.starts_with(".github/workflows/")
+                || path.to_string_lossy().contains("/.github/workflows/"))
+        {
             parse_github(&path, &source)
         } else if is_yaml(name) && looks_like_kubernetes(&path).unwrap_or(false) {
             parse_kubernetes(&path, &source)

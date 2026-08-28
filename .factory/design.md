@@ -52,7 +52,7 @@ The only signature motion is **the travelling capsule**: small dots cross the he
 
 ## Original asset plan and provenance
 
-- `hero-conservatory.webp`: generated for this product with `/opt/fleet/lib/gen-image.sh` using the factory image deployment. Prompt: “Surreal editorial cut-paper illustration of a nocturnal glass conservatory shown as an architectural cutaway; pale luminous seed capsules travel through thin transparent pipes into three separate dark-green chambers; scientific field-journal composition; deep near-black green, parchment, sharp chartreuse, muted coral and icy teal inks; tactile paper grain and crisp silhouette edges; wide 3:2 framing; no people, no locks, no keys, no logos, no interface, no letters, no numbers, no readable text, no gradient blobs.” The generated raster is original project art and will be optimized to WebP under 300 KB.
+- `hero-conservatory.webp`: generated for this product with `/opt/fleet/lib/gen-image.sh` using the factory image deployment. The exact prompt and deployment are stored in `site/public/assets/hero-conservatory.provenance.json`. The generated raster is original project art and is optimized to a 132 KB WebP. A responsive 640 px version is 41 KB.
 - `social-card.webp`: a 1200×630 crop composed from the same original scene with CSS-free image tooling. It contains no required text.
 - Wordmark, favicon, and disclosure-path symbols are hand-made SVG/CSS geometry in this repository. They contain no borrowed marks.
 

@@ -1,0 +1,19 @@
+{
+  "name": "secret-injection-diff-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.config.js",
+    "build:site": "vite build --config vite.config.js",
+    "build:cli": "cargo build --release && node scripts/copy-binary.mjs",
+    "build": "npm run build:cli && npm run build:site",
+    "test:cli": "cargo test && cargo build",
+    "test": "npm run test:cli && playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
+    "vite": "7.3.6"
+  }
+}

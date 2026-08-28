@@ -1,0 +1,58 @@
+[
+  {
+    "id": "adapters",
+    "claim": "Scans .env, Compose, GitHub Actions, and Kubernetes files",
+    "where": "landing page and README",
+    "test": "npm test -- --grep @claim:adapters",
+    "sandbox": "bundled examples/demo/after directory; assert all four adapter names in JSON"
+  },
+  {
+    "id": "scope-change",
+    "claim": "Returns exit code 2 when a new recipient gains a secret name",
+    "where": "landing page, demo, and README",
+    "test": "npm test -- --grep @claim:scope-change",
+    "sandbox": "temporary directory copied from bundled before and after samples"
+  },
+  {
+    "id": "values-excluded",
+    "claim": "Secret values never appear in reports",
+    "where": "landing page, privacy page, and README",
+    "test": "npm test -- --grep @claim:values-excluded",
+    "sandbox": "bundled .env contains known fake values; assert JSON excludes them and includes names"
+  },
+  {
+    "id": "redaction",
+    "claim": "The --redact option replaces secret names with stable hashes",
+    "where": "README",
+    "test": "npm test -- --grep @claim:redaction",
+    "sandbox": "run the bundled sample twice; assert stable tokens and no raw NPM_TOKEN"
+  },
+  {
+    "id": "isolated-demo",
+    "claim": "The CLI demo uses a new temporary workspace and does not write project data",
+    "where": "demo page and README",
+    "test": "npm test -- --grep @claim:isolated-demo",
+    "sandbox": "run the bundled demo; assert its output path is under the operating system temp directory"
+  },
+  {
+    "id": "json-output",
+    "claim": "The CLI emits stable JSON for scripts",
+    "where": "README",
+    "test": "npm test -- --grep @claim:json-output",
+    "sandbox": "scan the bundled sample with --json and validate schema and edge fields"
+  },
+  {
+    "id": "no-network",
+    "claim": "The CLI has no network client and the browser demo makes no third-party requests",
+    "where": "landing page, privacy page, and README",
+    "test": "npm test -- --grep @claim:no-network",
+    "sandbox": "inspect CLI dependencies and capture every request in a fresh browser context"
+  },
+  {
+    "id": "free-mit",
+    "claim": "Secret Injection Diff is free and MIT licensed",
+    "where": "landing page, terms page, and README",
+    "test": "npm test -- --grep @claim:free-mit",
+    "sandbox": "fresh browser context and repository license file"
+  }
+]
