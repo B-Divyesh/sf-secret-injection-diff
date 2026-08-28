@@ -1,41 +1,22 @@
-# Secret Injection Diff — perfection-loop round 5 handoff
+# Secret Injection Diff — adversarial review 6 handoff
 
 ## Delivered
 
-- Repaired F-5-1 in commit `939fc1f959def63919bd3188e77903442484e5ff`: removed the Terms page's untestable future-policy sentence and its empty **Changes** section.
-- Added `terms state only present, observable policy information`, which rejects both the section and its future promise.
-- Extended the repeatable live audit to reject that promise on the deployed Terms page while asserting the public canonical domain.
-- Rechecked the earlier demo, copy, privacy, CLI, mobile, routing, metadata, 404, and accessibility repairs. They remain present in the shipped artifact.
-- Deployed the static `dist/site` build to production Static Web App `sf-secret-injection-diff` and cold-checked <https://secret-injection-diff.sociobot.in>.
+- Added `.factory/review-6.md` with a full cold mobile/desktop review, exhaustive landing/README copy audit, all-claims rerun, demo isolation check, route/accessibility/link audit, and cumulative verification of every earlier finding.
+- Made no product-code changes and performed no deployment.
+- Verdict: **FAIL** with one blocking finding, F-6-1. The aggregate Playwright suite can rebuild and empty `dist/site` while the preview server serves route tests from that directory.
 
-The catalog description remains the valid verb-first, 56-character sentence: “Check which processes get secret names before code merges.”
+## Verification
 
-## Exact verification
+- Clean clone: `/tmp/sid-review6-clean-nxhgbe/repo` at `12fb243d9b4512a1792aeee142cfd65c2594e131`; `npm ci` passed.
+- Every exact command in `.factory/claims.json` passed separately: 21/21.
+- First aggregate `npm test`: failed with 56 passing tests and one `/privacy/` structure test receiving a 404 and empty document.
+- Immediate aggregate rerun: passed with 9 Rust tests and 57 Playwright tests. A direct preview/build overlap check then reproduced HTTP 404 for `/privacy/` during the first rebuild, confirming the test-isolation problem.
+- `npm run lint`, `npm run typecheck`, `npm run build`, and `cargo package --allow-dirty`: passed.
+- Public audit: `CANONICAL_BASE=https://secret-injection-diff.sociobot.in/ npm run verify:live -- https://secret-injection-diff.sociobot.in/ /tmp/sid-review6-live` passed 10 route/viewport Axe checks and matched 15 deployed artifacts.
+- `/opt/fleet/lib/verify-url.sh https://secret-injection-diff.sociobot.in/ /tmp/sid-review6-verify-url`: passed.
+- CLI demo from a separate temporary caller directory created only a new OS-temporary workspace and left the caller sentinel unchanged.
 
-- Fresh clone: `/tmp/sid-polish5-clean-9MqRQo/repo` at `939fc1f959def63919bd3188e77903442484e5ff`; `npm ci` succeeded.
-- Every one of the 21 exact commands in `.factory/claims.json` passed separately, each selecting one `@claim:<id>` test. See `.factory/claim-results.md`.
-- Fresh-clone aggregate suite: `npm test` passed 9 Rust tests and 57 Playwright tests.
-- Fresh-clone package gates: `npm run lint`, `npm run typecheck`, `npm run build`, `npm audit --audit-level=high`, and `cargo package --allow-dirty` all passed.
-- Live browser audit: `CANONICAL_BASE=https://secret-injection-diff.sociobot.in/ npm run verify:live -- https://secret-injection-diff.sociobot.in/ /work/.evidence/polish5/public-live` passed. It checked five routes at desktop and mobile (10 Axe scans, zero serious/critical issues), one-click demo, mobile first screen, sticky banner, storage/privacy, route focus, 404, reduced motion, links, headers, and 15/15 artifact hashes.
-- `/opt/fleet/lib/verify-url.sh https://secret-injection-diff.sociobot.in/ /work/.evidence/polish5/public-verify-url` passed with HTTP 200, title/lang/main/h1/alt checks, and no console errors.
-- Live Lighthouse report: Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 870 ms, LCP 1,516 ms, TBT 8 ms, CLS 0. Evidence: `/work/.evidence/polish5/lighthouse-public.json`.
+## Known gap and next step
 
-## Run and deploy
-
-```sh
-npm ci
-npm test
-npm run lint
-npm run typecheck
-npm run build
-```
-
-The CLI package is ready for the factory to publish with `cargo package`; do not publish it from this worker. The static deployment command used in this work order was:
-
-```sh
-swa deploy ./dist/site --env production --resource-group sociobot --app-name sf-secret-injection-diff --no-use-keychain
-```
-
-## Known gaps
-
-None. The site intentionally makes no offline/PWA claim and therefore has no service worker or cache storage. No product data is stored by the browser demo.
+Fix F-6-1 by moving `@claim:build-artifacts` outside the parallel browser suite or giving it a separate output directory. Then run repeated clean-clone `npm test` executions without retries. The deployed product itself had no new copy, demo, claim, privacy, route, accessibility, visual, or feature defect in this round.
