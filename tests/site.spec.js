@@ -152,8 +152,17 @@ test('visitor copy uses the defined product terms and the 404 heading is plain',
   const readme = readFileSync(join(root, 'README.md'), 'utf8');
   expect(landing).toContain('Check which process gets each secret name');
   expect(landing).toContain('Reports secret names · never values');
+  expect(landing).toContain('Save the baseline in your repository beside the configuration it describes.');
+  expect(landing).not.toContain('The baseline stays');
   expect(`${landing}\n${demo}\n${terms}\n${script}\n${styles}\n${readme}`).not.toMatch(/\bcredential\b|Reports names|\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|runtime CDN|Specimen 02|Field method|Known terrain|Outside the fence|To work on each half separately|injection paths?/i);
   expect(readme).not.toMatch(/Rust \d+(?:\.\d+)? or newer/i);
+  expect(readme).toContain('prints the result, and shows the temporary workspace path.');
+  expect(readme).toContain('It does not read or write the project where you run the command.');
+  expect(readme).toContain('delivery methods, such as an environment variable or mounted file');
+  expect(readme).toContain('## Use the CLI');
+  expect(readme).not.toContain('temporary report lives');
+  expect(readme).not.toContain('It never reads or writes project data.');
+  expect(readme).not.toContain('\n## Use\n');
   await page.goto('/404.html');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });

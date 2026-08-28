@@ -1,32 +1,51 @@
-# Adversarial review 4 handoff — Secret Injection Diff
+# Secret Injection Diff — round 4 handoff
 
-## Result
+## Delivered
 
-**FAIL.** Review 4 is recorded in `.factory/review-4.md` with three blocking and eight minor findings. Product code was not modified.
+Round 4 repairs are deployed at <https://secret-injection-diff.sociobot.in>.
+The deployed product source is `ca25ce323341460b507edbc145f7a8fe52b960dc`.
 
-## What was done
+- Standalone dotenv files now create declarations, never fictitious processes.
+- `--redact` now emits opaque, collision-free per-output labels.
+- The network claim records actual socket/connect/send behavior for every CLI command.
+- Mobile first-screen facts and demo terminal guidance meet the reviewed layout requirements.
+- Copy, README, claim registry, live routing, metadata, focus, legal links, 404, privacy, and demo behavior are all reverified.
 
-- Captured cold live first screens at 390 × 844 and 1440 × 900 before scrolling.
-- Audited every landing-page and README prose item, heading, label, action, and meaningful output fragment with word counts.
-- Exercised the one-click browser demo, Reset, replay, sticky banner, Start for real, Back, focus announcements, storage isolation, and request privacy.
-- Ran the CLI demo from an empty temporary caller directory.
-- Created `/tmp/sid-review4-clean`, installed dependencies, and ran all 21 exact commands from `.factory/claims.json` separately.
-- Rechecked every finding from reviews 1–3 against the live site and current code.
-- Crawled deployed links and routes; checked titles, metadata, 404 behavior, accessibility, reduced motion, and local/live artifact parity.
+## Verify
 
-## Verification
+```sh
+npm ci
+npm test
+npm run lint
+npm run typecheck
+npm run build
+npm audit --audit-level=high
+cargo package --allow-dirty
+```
 
-- `npm test`: pass; 9 Rust tests and 54 Playwright tests.
-- `npm run lint`: pass.
-- `npm run typecheck`: pass.
-- `npm run build`: pass; `dist/site` and `dist/bin/secret-injection-diff` produced.
-- All 21 registered claim commands: pass from `/tmp/sid-review4-clean`.
-- `npm run verify:live -- https://secret-injection-diff.sociobot.in /tmp/sid-review4-live`: pass; 10 route audits, zero serious Axe findings, no browser storage, 15/15 artifacts matched.
-- `/opt/fleet/lib/verify-url.sh https://secret-injection-diff.sociobot.in /tmp/sid-review4-verify-url`: pass.
+Every one of the 21 claim commands passed separately in clean clone
+`/tmp/sid-polish4-final-clean-amaVVm/repo` at the deployed commit. Full claim
+details are in `.factory/claim-results.md`; finding-by-finding evidence is in
+`.factory/polish-4.md`.
 
-## Findings left for repair
+The final live verification is stored under `/work/.evidence/polish4/final-live`:
+five cold routes at two viewports, zero serious/critical Axe violations, no
+console errors, empty browser storage, working focus and 404 behavior, and
+15/15 production artifact hashes matching `dist/site`.
 
-- Blocking: standalone `.env` files are emitted as process recipients; deterministic 32-bit redaction permits dictionary recovery; the CLI no-network claim test does not observe runtime traffic.
-- Minor: two required mobile facts are below the first fold; clipped demo output lacks the design-required scroll instruction; one baseline-location claim is unlisted and unenforced; two README demo sentences are inaccurate or overbroad; “injection paths” is undefined; one landing heading is grammatically incomplete; and the README “Use” heading is vague.
+Lighthouse scored 100 performance, 100 accessibility, 100 best practices, and
+100 SEO. The initial JS is 1,400 bytes gzip; CSS is 2,940 bytes gzip; the hero
+uses no downloaded font.
 
-The next worker should repair each item by ID, add the specified negative/observable tests, and rerun the entire review rather than only the changed areas.
+## Deploy
+
+The work-order static deploy command is:
+
+```sh
+npm ci && npm run build:site
+/opt/fleet/lib/deploy-static.sh secret-injection-diff dist/site
+```
+
+## Known gaps
+
+None.

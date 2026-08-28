@@ -1,26 +1,26 @@
 {
   "measured_at": "2026-08-28",
-  "url": "https://secret-injection-diff.sociobot.in/ after perfection-loop round 3 deployment",
+  "url": "https://secret-injection-diff.sociobot.in/ after perfection-loop round 4 deployment",
   "lighthouse": {
     "performance": 100,
     "accessibility": 100,
     "best_practices": 100,
     "seo": 100,
-    "first_contentful_paint_ms": 1017,
-    "largest_contentful_paint_ms": 1506,
-    "total_blocking_time_ms": 0,
+    "first_contentful_paint_ms": 928,
+    "largest_contentful_paint_ms": 1536,
+    "total_blocking_time_ms": 23,
     "cumulative_layout_shift": 0
   },
   "budgets": {
-    "initial_js_gzip_bytes": 1326,
-    "css_gzip_bytes": 2892,
+    "initial_js_gzip_bytes": 1400,
+    "css_gzip_bytes": 2940,
     "mobile_hero_bytes": 40918,
     "desktop_hero_bytes": 132680,
     "fonts_bytes": 0
   },
-  "accessibility_scan": "Axe 4.10.2: zero serious or critical violations across all five routes at 1440x900 and 390x844",
+  "accessibility_scan": "Axe 4.10.2: zero serious or critical violations across five routes at 1440x900 and 390x844",
   "browser": "Playwright Chromium 1.58.2 at desktop and 390x844",
-  "automated_tests": "9 Rust tests and 54 Playwright tests passed; all 21 claim commands passed separately in clean clone /tmp/sid-polish3-final-V9flcC/repo at 231865cd7d89c332fb854cef5913c51f2613ce2f",
+  "automated_tests": "9 Rust tests and 56 Playwright tests passed; all 21 claim commands passed separately in clean clone /tmp/sid-polish4-final-clean-amaVVm/repo at ca25ce323341460b507edbc145f7a8fe52b960dc",
   "strict_lint": "cargo fmt, Clippy -D warnings, and ESLint passed",
   "live_artifact_parity": "15 deployed HTML/runtime files match dist/site byte-for-byte"
 }
