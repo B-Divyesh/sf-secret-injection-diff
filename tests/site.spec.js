@@ -174,6 +174,19 @@ test('landing page reflows without lost content at 200% mobile zoom', async ({ p
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
+test('reduced motion removes decorative travel and smooth scrolling', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const motion = await page.evaluate(() => ({
+    scrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
+    capsuleDisplay: getComputedStyle(document.querySelector('.capsule')).display,
+    buttonTransitionSeconds: Number.parseFloat(getComputedStyle(document.querySelector('.button')).transitionDuration)
+  }));
+  expect(motion.scrollBehavior).toBe('auto');
+  expect(motion.capsuleDisplay).toBe('none');
+  expect(motion.buttonTransitionSeconds).toBeLessThanOrEqual(0.001);
+});
+
 test('mobile navigation targets are at least 44px tall', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
