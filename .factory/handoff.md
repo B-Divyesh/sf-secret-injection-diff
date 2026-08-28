@@ -1,51 +1,21 @@
-# Secret Injection Diff — round 4 handoff
+# Secret Injection Diff — review 5 handoff
 
 ## Delivered
 
-Round 4 repairs are deployed at <https://secret-injection-diff.sociobot.in>.
-The deployed product source is `ca25ce323341460b507edbc145f7a8fe52b960dc`.
+Completed an adversarial first-read review of commit `8024b91b85d081163192528a99e6c9dd78596264` and the live site at <https://secret-injection-diff.sociobot.in>.
 
-- Standalone dotenv files now create declarations, never fictitious processes.
-- `--redact` now emits opaque, collision-free per-output labels.
-- The network claim records actual socket/connect/send behavior for every CLI command.
-- Mobile first-screen facts and demo terminal guidance meet the reviewed layout requirements.
-- Copy, README, claim registry, live routing, metadata, focus, legal links, 404, privacy, and demo behavior are all reverified.
+- Wrote `.factory/review-5.md` with a **FAIL** verdict and one minor finding.
+- Audited every landing-page and README sentence, all registered claims, the one-click browser demo, the CLI demo sandbox, every prior finding, route structure, accessibility, privacy, links, and visual identity.
+- Modified no product code.
 
-## Verify
+## Verification
 
-```sh
-npm ci
-npm test
-npm run lint
-npm run typecheck
-npm run build
-npm audit --audit-level=high
-cargo package --allow-dirty
-```
-
-Every one of the 21 claim commands passed separately in clean clone
-`/tmp/sid-polish4-final-clean-amaVVm/repo` at the deployed commit. Full claim
-details are in `.factory/claim-results.md`; finding-by-finding evidence is in
-`.factory/polish-4.md`.
-
-The final live verification is stored under `/work/.evidence/polish4/final-live`:
-five cold routes at two viewports, zero serious/critical Axe violations, no
-console errors, empty browser storage, working focus and 404 behavior, and
-15/15 production artifact hashes matching `dist/site`.
-
-Lighthouse scored 100 performance, 100 accessibility, 100 best practices, and
-100 SEO. The initial JS is 1,400 bytes gzip; CSS is 2,940 bytes gzip; the hero
-uses no downloaded font.
-
-## Deploy
-
-The work-order static deploy command is:
-
-```sh
-npm ci && npm run build:site
-/opt/fleet/lib/deploy-static.sh secret-injection-diff dist/site
-```
+- Fresh clone `/tmp/sid-review5-clean-4rZYrq/repo`: `npm ci`, then all 21 exact `.factory/claims.json` commands passed separately.
+- Current checkout: `npm test` passed 9 Rust and 56 Playwright tests; `npm run lint`, `npm run typecheck`, and `npm run build` passed.
+- Live audit: five routes at 390 × 844 and 1440 × 900, zero serious/critical Axe violations, no console errors, correct metadata/routing/focus, empty demo storage, same-origin-only traffic, and 15/15 deployed artifacts matching `dist/site`.
+- `/opt/fleet/lib/verify-url.sh` passed.
+- CLI demo run from a temporary caller directory left the caller’s sentinel file unchanged and wrote only to a new OS-temp workspace.
 
 ## Known gaps
 
-None.
+F-5-1 remains: `/terms/` promises that future material changes will update the effective date, but this claim is absent from `.factory/claims.json` and cannot be proven in the sandbox. Delete that sentence and the empty **Changes** section, then rerun the claim inventory check.
