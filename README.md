@@ -79,6 +79,8 @@ npm run build
 
 The site build lands in `dist/site`. The release CLI lands in `dist/bin`.
 
+Deploy the contents of `dist/site` to a static host. The factory handles production deployment; this repository does not manage infrastructure.
+
 Build and test the CLI and documentation site separately:
 
 ```sh

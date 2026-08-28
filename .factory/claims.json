@@ -36,7 +36,7 @@
   },
   {
     "id": "scope-change",
-    "claim": "Returns exit code 2 when a new recipient gains a secret name",
+    "claim": "Returns exit code 2 when a new process gains a secret name",
     "where": "landing page, demo, and README",
     "test": "npm test -- --grep @claim:scope-change",
     "sandbox": "temporary bundled before/after samples plus a negative Compose injection-path refactor using the same secret name and process"

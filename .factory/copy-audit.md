@@ -71,7 +71,7 @@ No line exceeds 22 words. No line contains a banned marketing word. The first sc
 | A supported configuration format | file type |
 | The isolated example | demo |
 
-Catalog description: “Prove which processes gain secret names before code merges.” (57 characters)
+Catalog description: “Prove which processes gain secret names before code merges.” (59 characters)
 
 ## Error page
 
