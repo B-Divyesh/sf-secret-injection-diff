@@ -11,7 +11,8 @@
     "test:cli": "cargo test && cargo build",
     "test": "npm run test:cli && playwright test",
     "typecheck": "cargo check --all-targets --all-features",
-    "lint": "cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && eslint ."
+    "lint": "cargo fmt --check && cargo clippy --all-targets --all-features -- -D warnings && eslint .",
+    "verify:live": "node scripts/verify-live.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",
