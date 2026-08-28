@@ -1,5 +1,7 @@
 # Landing page copy audit
 
+Rechecked against the repair build on 2026-08-28. No visitor-facing landing copy changed and no new flags were found.
+
 Count method: whitespace-separated words. Labels and fragments are included because visitors read them as product copy.
 
 | Copy | Words | Result |

@@ -1,13 +1,13 @@
 {
   "measured_at": "2026-08-28",
-  "url": "local production preview after repair",
+  "url": "https://secret-injection-diff.sociobot.in/ after repair deployment",
   "lighthouse": {
     "performance": 100,
     "accessibility": 100,
     "best_practices": 100,
     "seo": 100,
-    "first_contentful_paint_ms": 967,
-    "largest_contentful_paint_ms": 1901,
+    "first_contentful_paint_ms": 901,
+    "largest_contentful_paint_ms": 1513,
     "total_blocking_time_ms": 0,
     "cumulative_layout_shift": 0
   },
@@ -20,6 +20,6 @@
   },
   "accessibility_scan": "Axe 4.10.2: zero serious or critical violations on all five routes at desktop and 390x844",
   "browser": "Playwright Chromium 1.58.2 at desktop and 390x844",
-  "automated_tests": "8 Rust tests and 33 Playwright tests passed after clean npm ci",
+  "automated_tests": "8 Rust tests and 34 Playwright tests passed after clean npm ci",
   "strict_lint": "cargo fmt, Clippy -D warnings, and ESLint passed"
 }
