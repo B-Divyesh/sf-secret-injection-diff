@@ -36,6 +36,13 @@ window.addEventListener('hashchange', () => window.requestAnimationFrame(focusDe
 // This keeps a full-document route change equivalent to an in-page route change.
 window.addEventListener('pageshow', () => window.requestAnimationFrame(focusDestination));
 
+const updateScrollHints = () => {
+  document.querySelectorAll('[data-scroll-hint]').forEach(hint => {
+    const terminal = hint.previousElementSibling?.querySelector('[data-terminal]');
+    hint.hidden = !terminal || terminal.scrollWidth <= terminal.clientWidth;
+  });
+};
+
 const renderTranscript = (target, animate = false) => {
   if (!target) return;
   target.textContent = '';
@@ -46,21 +53,14 @@ const renderTranscript = (target, animate = false) => {
       line.className = item.className;
       line.textContent = `${item.text}\n`;
       target.append(line);
+      if (index === transcript.length - 1) window.requestAnimationFrame(updateScrollHints);
     }, animate && !reduced ? index * 430 : 0);
   });
 };
 
 document.querySelectorAll('[data-terminal]').forEach(target => renderTranscript(target));
 
-const updateScrollHints = () => {
-  document.querySelectorAll('[data-scroll-hint]').forEach(hint => {
-    const terminal = hint.previousElementSibling?.querySelector('[data-terminal]');
-    hint.hidden = !terminal || terminal.scrollWidth <= terminal.clientWidth;
-  });
-};
-
 window.addEventListener('resize', updateScrollHints);
-window.requestAnimationFrame(updateScrollHints);
 
 document.querySelectorAll('[data-replay]').forEach(button => {
   button.addEventListener('click', () => {

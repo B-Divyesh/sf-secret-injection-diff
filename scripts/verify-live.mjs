@@ -121,6 +121,12 @@ const firstScreen = await demoPage.locator('[data-terminal]').evaluate(element =
 });
 assert.ok(firstScreen.terminalTop < firstScreen.viewportHeight);
 assert.ok(firstScreen.lastLineBottom <= firstScreen.viewportHeight);
+const terminalClips = await demoPage.locator('[data-terminal]').evaluate(element => element.scrollWidth > element.clientWidth);
+assert.equal(terminalClips, true);
+assert.equal(
+  await demoPage.getByText('Scroll sideways to read the full command and process path.').isVisible(),
+  true
+);
 await demoPage.screenshot({ path: join(evidenceDirectory, 'demo-first-screen-mobile.png') });
 await demoPage.getByRole('button', { name: 'Reset demo' }).click();
 assert.equal(await demoPage.locator('[data-demo-status]').textContent(), 'Demo reset. Sample data is ready.');
@@ -157,7 +163,7 @@ assert.equal(await demoPage.locator('[data-route-status]').textContent(), 'Catch
 await demoPage.goBack({ waitUntil: 'networkidle' });
 await demoPage.waitForFunction(() => document.activeElement?.tagName === 'H1');
 assert.equal(await demoPage.evaluate(() => document.activeElement?.tagName), 'H1');
-assert.equal(await demoPage.locator('[data-route-status]').textContent(), 'Prove which process gets each secret name');
+assert.equal(await demoPage.locator('[data-route-status]').textContent(), 'Check which process gets each secret name');
 await demoPage.goto(new URL('/demo/?demo=1', base).href, { waitUntil: 'networkidle' });
 await demoPage.getByRole('link', { name: 'Start for real' }).press('Enter');
 await demoPage.waitForURL(/\/#install$/);
@@ -167,6 +173,15 @@ assert.equal(await demoPage.locator('[data-route-status]').textContent(), 'Insta
 await demoPage.goto(new URL('/?demo=1', base).href, { waitUntil: 'networkidle' });
 await demoPage.waitForURL(/\/demo\/\?demo=1$/);
 await demoContext.close();
+
+const factsContext = await browser.newContext({ viewport: viewports[1] });
+const factsPage = await factsContext.newPage();
+await factsPage.goto(new URL('/', base).href, { waitUntil: 'networkidle' });
+assert.equal(await factsPage.locator('h1').textContent(), 'Check which process gets each secret name');
+const factBottomEdges = await factsPage.locator('.facts li').evaluateAll(items => items.map(item => item.getBoundingClientRect().bottom));
+assert.equal(factBottomEdges.length, 3);
+assert.ok(factBottomEdges.every(bottom => bottom <= 844), 'all three first-screen facts should fit at 390px');
+await factsContext.close();
 
 const reducedContext = await browser.newContext({ viewport: viewports[1], reducedMotion: 'reduce' });
 const reducedPage = await reducedContext.newPage();
@@ -209,7 +224,8 @@ const report = {
   baseUrl: base.href,
   routeResults,
   unknownRoute: { status: unknownResponse.status(), title: 'Not found — Secret Injection Diff', heading: 'Page not found' },
-  demo: { firstScreen, persistentBanner, browserStorage, origins: [...demoOrigins], errors: demoErrors },
+  demo: { firstScreen, terminalClips, persistentBanner, browserStorage, origins: [...demoOrigins], errors: demoErrors },
+  firstScreenFacts: { bottomEdges: factBottomEdges },
   reducedMotion,
   internalLinks: [...internalLinks].sort(),
   artifactMatches,
