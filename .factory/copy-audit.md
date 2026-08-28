@@ -1,6 +1,6 @@
 # Landing page copy audit
 
-Rechecked against perfection-loop round 1 on 2026-08-28. The jargon and terminology findings from review 1 are resolved.
+Rechecked against perfection-loop round 2 on 2026-08-28. The core observable is always called a **secret name**; the landing page does not call it a credential or bare “names.”
 
 Count method: whitespace-separated words. Labels and fragments are included because visitors read them as product copy.
 
@@ -11,16 +11,16 @@ Count method: whitespace-separated words. Labels and fragments are included beca
 | Install | 1 | Navigation label |
 | Privacy | 1 | Navigation label |
 | Local configuration audit / v0.1.0 | 5 | Context label |
-| Prove which process gets each secret | 6 | Pass |
-| For developers reviewing CI and deploy changes before an unexpected process gains a credential. | 13 | Pass |
+| Prove which process gets each secret name | 7 | Pass |
+| For developers reviewing CI and deploy changes before a new process gets a secret name. | 14 | Pass |
 | Try it with sample data | 6 | Pass |
-| See the check fail when a new process gets a secret. | 11 | Pass |
+| See the check fail when a new process gets a secret name. | 12 | Pass |
 | Runs locally · no network calls | 6 | Pass |
-| Reports names · never values | 5 | Pass |
+| Reports secret names · never values | 6 | Pass |
 | Free · MIT licensed | 4 | Pass |
 | A cutaway conservatory shows glowing capsules routed into separate plant rooms. | 11 | Image alternative passes |
 | Specimen 02 | 2 | Section label |
-| See which process gets a secret before merge | 8 | Pass |
+| See which process gets a secret name before merge | 9 | Pass |
 | The check compares current secret access with a committed baseline. | 10 | Pass |
 | release.yml / recipient diff | 4 | Output label |
 | 1 added, 0 removed | 4 | Output fragment |
@@ -53,7 +53,7 @@ Count method: whitespace-separated words. Labels and fragments are included beca
 | Install command copied. | 3 | Success feedback |
 | Copy failed. Select the command and copy it. | 8 | Recovery feedback |
 | Then run secret-injection-diff scan. | 4 | Pass |
-| Map secret recipients before merge. | 5 | Pass |
+| Map secret names to processes before merge. | 7 | Pass |
 | v0.1.0 · build 2026-08-28 | 4 | Build label |
 | Terms | 1 | Navigation label |
 | Built by Param Factory | 4 | Attribution link |
@@ -64,10 +64,18 @@ No line exceeds 22 words. No line contains a banned marketing word. The first sc
 
 | Concept | One term |
 | --- | --- |
-| A configured credential label | secret name |
+| A configured secret label | secret name |
 | A program or job that receives it | process |
 | The approved access list | baseline |
 | A supported configuration format | file type |
 | The isolated example | demo |
 
 Catalog description: “Prove which processes gain secret names before a pull request merges.” (69 characters)
+
+## Error page
+
+| Copy | Words | Result |
+| --- | ---: | --- |
+| Page not found | 3 | Plain heading; no product jargon |
+| The page may have moved, or the address may be wrong. | 11 | Pass |
+| Return home | 2 | Result-naming action |

@@ -1,1 +1,1 @@
-Prove which processes gain secret names before a pull request merges.
+Prove only approved processes gain secret names before merge.

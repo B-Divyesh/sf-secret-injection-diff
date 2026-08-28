@@ -62,7 +62,7 @@ test('one-click demo query opens isolated sample mode with banner and reset', as
 test('root demo query enters sample mode directly', async ({ page }) => {
   await page.goto('/?demo=1');
   await expect(page).toHaveURL(/\/demo\/\?demo=1$/);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Catch a process gaining a secret');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Catch a process gaining a secret name');
 });
 
 test('demo-to-install navigation moves focus, announces the section, and Back restores the demo', async ({ page }) => {
@@ -74,6 +74,29 @@ test('demo-to-install navigation moves focus, announces the section, and Back re
   await page.goBack();
   await expect(page).toHaveURL(/\/demo\/\?demo=1$/);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+});
+
+test('full-page navigation and browser Back focus and announce the destination heading', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Demo' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/demo\/$/);
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  await expect(page.locator('[data-route-status]')).toHaveText('Catch a process gaining a secret name');
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  await expect(page.locator('[data-route-status]')).toHaveText('Prove which process gets each secret name');
+});
+
+test('landing copy uses secret name consistently and the 404 heading is plain', async ({ page }) => {
+  const landing = readFileSync(join(root, 'site/index.html'), 'utf8');
+  expect(landing).toContain('Prove which process gets each secret name');
+  expect(landing).toContain('Reports secret names · never values');
+  expect(landing).not.toMatch(/credential|Reports names/i);
+  await page.goto('/404.html');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });
 
 test('landing page fits a 390px viewport', async ({ page }) => {

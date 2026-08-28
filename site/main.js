@@ -19,18 +19,21 @@ routeStatus.setAttribute('aria-live', 'polite');
 document.body.append(routeStatus);
 
 const focusDestination = () => {
-  if (!window.location.hash) return;
-  const destination = document.querySelector(window.location.hash);
-  const heading = destination?.matches('h1, h2, h3')
-    ? destination
-    : destination?.querySelector('h1, h2, h3');
+  const destination = window.location.hash ? document.querySelector(window.location.hash) : null;
+  const heading = destination
+    ? (destination.matches('h1, h2, h3') ? destination : destination.querySelector('h1, h2, h3'))
+    : document.querySelector('main h1');
   if (!heading) return;
   heading.setAttribute('tabindex', '-1');
-  heading.focus();
-  routeStatus.textContent = `${heading.textContent.trim()} section`;
+  heading.focus({ preventScroll: Boolean(destination) });
+  routeStatus.textContent = destination
+    ? `${heading.textContent.trim()} section`
+    : heading.textContent.trim();
 };
 
-window.addEventListener('hashchange', focusDestination);
+window.addEventListener('hashchange', () => window.requestAnimationFrame(focusDestination));
+// `pageshow` also fires when a page is restored from the back/forward cache.
+// This keeps a full-document route change equivalent to an in-page route change.
 window.addEventListener('pageshow', () => window.requestAnimationFrame(focusDestination));
 
 const renderTranscript = (target, animate = false) => {
