@@ -1,4 +1,4 @@
-use crate::model::Edge;
+use crate::model::{Declaration, Edge};
 use serde::Deserialize;
 use serde_yaml_ng::{Mapping, Value};
 use std::fs;
@@ -95,13 +95,11 @@ pub fn dotenv_names(path: &Path) -> io::Result<Vec<String>> {
     Ok(names)
 }
 
-pub fn parse_dotenv(path: &Path, source: &str) -> io::Result<Vec<Edge>> {
+pub fn parse_dotenv(path: &Path, source: &str) -> io::Result<Vec<Declaration>> {
     Ok(dotenv_names(path)?
         .into_iter()
-        .map(|secret| Edge {
+        .map(|secret| Declaration {
             secret,
-            recipient: format!("env-file:{source}"),
-            injection: "declared environment name".into(),
             source: source.into(),
             adapter: "dotenv".into(),
         })

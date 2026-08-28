@@ -50,12 +50,12 @@ test('@claim:adapters scans four supported configuration types', () => {
   const result = run(['scan', 'examples/demo/after', '--json']);
   expect(result.status).toBe(0);
   const report = JSON.parse(result.stdout);
-  expect([...new Set(report.edges.map(edge => edge.adapter))].sort()).toEqual([
+  expect([...new Set([...report.edges, ...report.declarations].map(item => item.adapter))].sort()).toEqual([
     'compose', 'dotenv', 'github-actions', 'kubernetes'
   ]);
 });
 
-test('@claim:scope-change exits 2 when a new recipient appears', () => {
+test('@claim:scope-change exits 2 when a new process receives a secret name', () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-scope-'));
   const before = join(sandbox, 'before');
   const after = join(sandbox, 'after');
@@ -77,7 +77,7 @@ test('@claim:scope-change exits 2 when a new recipient appears', () => {
   expect(run(['check', refactorAfter, '--baseline', refactorBaseline]).status).toBe(0);
 });
 
-test('@claim:same-recipient-injection-change-exit-zero keeps an approved process approved when its injection path changes', () => {
+test('@claim:same-recipient-injection-change-exit-zero keeps an approved process approved when its delivery method changes', () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-injection-change-'));
   const before = join(sandbox, 'before');
   const after = join(sandbox, 'after');
@@ -89,7 +89,7 @@ test('@claim:same-recipient-injection-change-exit-zero keeps an approved process
   expect(result.status).toBe(0);
   expect(result.stdout).toContain('~ API_TOKEN -> compose:service/api');
   expect(result.stdout).toContain('[environment:API_TOKEN -> secret mount:/run/secrets/token]');
-  expect(result.stdout).toContain('0 processes added, 0 removed; 1 injection path changed');
+  expect(result.stdout).toContain('0 processes added, 0 removed; 1 delivery method changed');
   expect(result.stderr).not.toContain('check failed');
 });
 
@@ -118,7 +118,7 @@ test('@claim:diff-addition-exit-zero reports new process access without failing'
   expect(result.stdout).toContain('1 process added, 0 removed');
 });
 
-test('@claim:dotenv-capability scans .env and .env.* files for uppercase secret names', () => {
+test('@claim:dotenv-capability records .env names as declarations and binds them only through Compose env_file', () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-dotenv-'));
   write(join(sandbox, '.env'), 'ROOT_TOKEN=value\nlower_name=ignored\n');
   write(join(sandbox, '.env.production'), 'export PROD_TOKEN=value\nINVALID-NAME=value\n');
@@ -127,7 +127,8 @@ test('@claim:dotenv-capability scans .env and .env.* files for uppercase secret 
   const result = run(['scan', sandbox, '--json']);
   expect(result.status).toBe(0);
   const report = JSON.parse(result.stdout);
-  expect(report.edges.map(edge => [edge.secret, edge.source])).toEqual([
+  expect(report.edges).toEqual([]);
+  expect(report.declarations.map(declaration => [declaration.secret, declaration.source])).toEqual([
     ['LOCAL_TOKEN', '.env.local'],
     ['PROD_TOKEN', '.env.production'],
     ['ROOT_TOKEN', '.env']
@@ -135,6 +136,25 @@ test('@claim:dotenv-capability scans .env and .env.* files for uppercase secret 
   expect(result.stdout).not.toContain('lower_name');
   expect(result.stdout).not.toContain('INVALID-NAME');
   expect(result.stdout).not.toContain('IGNORED_TOKEN');
+
+  const before = join(sandbox, 'before');
+  const after = join(sandbox, 'after');
+  mkdirSync(before);
+  write(join(after, '.env.runtime'), 'BOUND_TOKEN=value\n');
+  const baseline = join(sandbox, 'baseline.json');
+  expect(run(['snapshot', before, '--output', baseline]).status).toBe(0);
+  const declarationOnly = run(['check', after, '--baseline', baseline]);
+  expect(declarationOnly.status).toBe(0);
+  const declarationReport = JSON.parse(run(['scan', after, '--json']).stdout);
+  expect(declarationReport.declarations).toEqual([
+    expect.objectContaining({ secret: 'BOUND_TOKEN', source: '.env.runtime', adapter: 'dotenv' })
+  ]);
+  expect(declarationReport.edges).toEqual([]);
+
+  write(join(after, 'compose.yaml'), 'services:\n  api:\n    env_file: .env.runtime\n');
+  const bound = run(['check', after, '--baseline', baseline]);
+  expect(bound.status).toBe(2);
+  expect(bound.stdout).toContain('BOUND_TOKEN -> compose:service/api');
 });
 
 test('@claim:compose-capability scans environment, scalar and list env_file, and short and long secrets', () => {
@@ -253,13 +273,26 @@ test('@claim:values-excluded keeps fixture values out of reports', () => {
   expect(result.stdout).toContain('DATABASE_URL');
 });
 
-test('@claim:redaction replaces names in shared output', () => {
+test('@claim:redaction replaces every name with collision-free opaque labels', () => {
   const one = run(['scan', 'examples/demo/after', '--json', '--redact']);
   const two = run(['scan', 'examples/demo/after', '--json', '--redact']);
   expect(one.status).toBe(0);
   expect(one.stdout).toBe(two.stdout);
   expect(one.stdout).not.toContain('NPM_TOKEN');
-  expect(one.stdout).toMatch(/secret_[0-9a-f]{8}/);
+  expect(one.stdout).toMatch(/secret_\d{3}/);
+  expect(one.stdout).not.toMatch(/secret_[0-9a-f]{8}/);
+  expect(one.stdout).not.toContain('39225bb4');
+
+  const many = mkdtempSync(join(tmpdir(), 'sid-claim-redaction-many-'));
+  const names = Array.from({ length: 200 }, (_, index) => `SECRET_${index}_TOKEN`);
+  write(join(many, '.env'), names.map(name => `${name}=value`).join('\n'));
+  const manyResult = run(['scan', many, '--json', '--redact']);
+  expect(manyResult.status).toBe(0);
+  const manyReport = JSON.parse(manyResult.stdout);
+  const labels = manyReport.declarations.map(declaration => declaration.secret);
+  expect(new Set(labels).size).toBe(names.length);
+  expect(labels).toEqual(expect.arrayContaining(['secret_001', 'secret_200']));
+  for (const name of names) expect(manyResult.stdout).not.toContain(name);
 
   const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-redacted-change-'));
   const before = join(sandbox, 'before');
@@ -272,7 +305,7 @@ test('@claim:redaction replaces names in shared output', () => {
   expect(changed.status).toBe(0);
   expect(changed.stdout).not.toContain('API_TOKEN');
   expect(JSON.parse(changed.stdout).injection_changes[0]).toEqual(expect.objectContaining({
-    secret: expect.stringMatching(/^secret_[0-9a-f]{8}$/),
+    secret: expect.stringMatching(/^secret_\d{3}$/),
     before: ['environment'],
     after: ['secret mount']
   }));
@@ -293,12 +326,12 @@ test('@claim:isolated-demo uses a new temporary workspace', () => {
   const browserTranscript = readFileSync(join(root, 'site/main.js'), 'utf8');
   expect(recordedCheck.status).toBe(2);
   expect(browserTranscript).toContain('+ NPM_TOKEN -> github:job/verify/step/Publish package');
-  expect(browserTranscript).toContain('1 process added, 0 removed; 0 injection paths changed');
+  expect(browserTranscript).toContain('1 process added, 0 removed; 0 delivery methods changed');
   expect(browserTranscript).toContain(recordedCheck.stderr.trim());
   expect(snapshotFiles(samples)).toEqual(before);
 });
 
-test('@claim:json-output emits parseable stable JSON', () => {
+test('@claim:json-output emits parseable JSON', () => {
   const result = run(['scan', 'examples/demo/after', '--json']);
   const report = JSON.parse(result.stdout);
   expect(report.schema).toBe(1);
@@ -306,9 +339,14 @@ test('@claim:json-output emits parseable stable JSON', () => {
   expect(report.edges[0]).toEqual(expect.objectContaining({ secret: expect.any(String), recipient: expect.any(String), injection: expect.any(String) }));
 });
 
-test('@claim:no-network uses no network client and the demo requests only its origin', async ({ page }) => {
+test('@claim:no-network records no CLI network syscalls and the demo requests only its origin', async ({ page }) => {
   const manifest = readFileSync(join(root, 'Cargo.toml'), 'utf8');
   expect(manifest).not.toMatch(/reqwest|hyper|curl|ureq|tokio|sentry|telemetry|analytics/);
+  const cliSource = readFileSync(join(root, 'src/main.rs'), 'utf8');
+  expect(cliSource).not.toMatch(/std::net|TcpStream|UdpSocket|socket\(|connect\(|send\(/);
+  const recorder = spawnSync('node', ['scripts/assert-no-network.mjs'], { cwd: root, encoding: 'utf8' });
+  expect(recorder.status, recorder.stderr).toBe(0);
+  expect(recorder.stdout).toContain('no socket/connect/send activity');
   const origins = new Set();
   page.on('request', request => origins.add(new URL(request.url()).origin));
   await page.goto('/demo/');

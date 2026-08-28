@@ -3,7 +3,7 @@ mod parsers;
 mod scan;
 
 use clap::{Args, Parser, Subcommand};
-use model::{DiffReport, Edge, InjectionChange, Report};
+use model::{Declaration, DiffReport, Edge, InjectionChange, Report};
 use scan::scan;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -20,7 +20,7 @@ const DEMO_AFTER_GITHUB: &str =
     include_str!("../examples/demo/after/.github/workflows/release.yml");
 
 #[derive(Parser)]
-#[command(name = "secret-injection-diff", version, about = "Prove which processes gain secret names before merge", long_about = None)]
+#[command(name = "secret-injection-diff", version, about = "Prove which processes gain secret names before code merges", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -76,40 +76,116 @@ struct CheckArgs {
 
 #[derive(Args, Clone, Default)]
 struct OutputArgs {
-    /// Print stable JSON for scripts
+    /// Print JSON for scripts
     #[arg(long)]
     json: bool,
-    /// Replace secret names with stable local hashes
+    /// Replace secret names with opaque labels for this output
     #[arg(long)]
     redact: bool,
 }
 
-fn stable_redaction(value: &str) -> String {
-    let mut hash = 0xcbf29ce484222325u64;
-    for byte in value.bytes() {
-        hash ^= byte as u64;
-        hash = hash.wrapping_mul(0x100000001b3);
-    }
-    format!("secret_{:08x}", (hash >> 32) as u32)
+#[derive(Default)]
+struct Redactor {
+    labels: BTreeMap<String, String>,
 }
 
-fn redact_edge(mut edge: Edge) -> Edge {
-    edge.secret = stable_redaction(&edge.secret);
+impl Redactor {
+    fn from_names(names: impl IntoIterator<Item = String>) -> Self {
+        let mut unique = BTreeSet::new();
+        unique.extend(names);
+        let labels = unique
+            .into_iter()
+            .enumerate()
+            .map(|(index, name)| (name, format!("secret_{:03}", index + 1)))
+            .collect();
+        Self { labels }
+    }
+
+    fn label(&self, value: &str) -> String {
+        self.labels
+            .get(value)
+            .cloned()
+            .unwrap_or_else(|| "secret_unknown".into())
+    }
+
+    fn replace_names(&self, value: &str) -> String {
+        let mut shown = value.to_string();
+        let mut names = self.labels.iter().collect::<Vec<_>>();
+        names.sort_by_key(|(name, _)| std::cmp::Reverse(name.len()));
+        for (name, label) in names {
+            shown = shown.replace(name.as_str(), label);
+        }
+        shown
+    }
+}
+
+fn redact_edge(mut edge: Edge, redactor: &Redactor) -> Edge {
+    edge.secret = redactor.label(&edge.secret);
+    edge.recipient = redactor.replace_names(&edge.recipient);
     edge.injection = edge
         .injection
         .split(':')
         .next()
         .unwrap_or(&edge.injection)
         .to_string();
+    edge.source = redactor.replace_names(&edge.source);
+    edge.adapter = redactor.replace_names(&edge.adapter);
     edge
+}
+
+fn redact_declaration(mut declaration: Declaration, redactor: &Redactor) -> Declaration {
+    declaration.secret = redactor.label(&declaration.secret);
+    declaration.source = redactor.replace_names(&declaration.source);
+    declaration.adapter = redactor.replace_names(&declaration.adapter);
+    declaration
+}
+
+fn report_redactor(report: &Report) -> Redactor {
+    Redactor::from_names(
+        report.edges.iter().map(|edge| edge.secret.clone()).chain(
+            report
+                .declarations
+                .iter()
+                .map(|declaration| declaration.secret.clone()),
+        ),
+    )
+}
+
+fn diff_redactor(diff: &DiffReport) -> Redactor {
+    Redactor::from_names(
+        diff.additions
+            .iter()
+            .chain(diff.removals.iter())
+            .map(|edge| edge.secret.clone())
+            .chain(
+                diff.injection_changes
+                    .iter()
+                    .map(|change| change.secret.clone()),
+            ),
+    )
 }
 
 fn shown_report(report: &Report, redact: bool) -> Report {
     if !redact {
         return report.clone();
     }
+    let redactor = report_redactor(report);
     let mut shown = report.clone();
-    shown.edges = shown.edges.into_iter().map(redact_edge).collect();
+    shown.edges = shown
+        .edges
+        .into_iter()
+        .map(|edge| redact_edge(edge, &redactor))
+        .collect();
+    shown.declarations = shown
+        .declarations
+        .into_iter()
+        .map(|declaration| redact_declaration(declaration, &redactor))
+        .collect();
+    shown.warnings = shown
+        .warnings
+        .into_iter()
+        .map(|warning| redactor.replace_names(&warning))
+        .collect();
     shown
 }
 
@@ -120,22 +196,41 @@ fn print_report(report: &Report, args: &OutputArgs) -> Result<(), String> {
             "{}",
             serde_json::to_string_pretty(&shown).map_err(|error| error.to_string())?
         );
-    } else if shown.edges.is_empty() {
+    } else if shown.edges.is_empty() && shown.declarations.is_empty() {
         println!("No secret access found.");
         println!(
             "Add a supported .env, Compose, GitHub Actions, or Kubernetes file, then scan again."
         );
     } else {
-        println!(
-            "{} secret access entr{}",
-            shown.edges.len(),
-            if shown.edges.len() == 1 { "y" } else { "ies" }
-        );
+        if !shown.edges.is_empty() {
+            println!(
+                "{} secret access entr{}",
+                shown.edges.len(),
+                if shown.edges.len() == 1 { "y" } else { "ies" }
+            );
+        }
         for edge in shown.edges {
             println!(
                 "  {} -> {}  [{}; {}]",
                 edge.secret, edge.recipient, edge.adapter, edge.injection
             );
+        }
+        if !shown.declarations.is_empty() {
+            println!(
+                "{} declared secret name{} without a named process",
+                shown.declarations.len(),
+                if shown.declarations.len() == 1 {
+                    ""
+                } else {
+                    "s"
+                }
+            );
+            for declaration in shown.declarations {
+                println!(
+                    "  {}  [{}; {}]",
+                    declaration.secret, declaration.adapter, declaration.source
+                );
+            }
         }
     }
     for warning in &report.warnings {
@@ -217,9 +312,10 @@ fn compare(baseline: &Report, current: &Report) -> DiffReport {
 }
 
 fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
+    let redactor = args.redact.then(|| diff_redactor(diff));
     let transform = |edge: &Edge| {
         if args.redact {
-            redact_edge(edge.clone())
+            redact_edge(edge.clone(), redactor.as_ref().expect("redactor exists"))
         } else {
             edge.clone()
         }
@@ -237,8 +333,14 @@ fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
                         |value: &String| value.split(':').next().unwrap_or(value).to_string();
                     if args.redact {
                         InjectionChange {
-                            secret: stable_redaction(&change.secret),
-                            recipient: change.recipient.clone(),
+                            secret: redactor
+                                .as_ref()
+                                .expect("redactor exists")
+                                .label(&change.secret),
+                            recipient: redactor
+                                .as_ref()
+                                .expect("redactor exists")
+                                .replace_names(&change.recipient),
                             before: change.before.iter().map(redact_injection).collect(),
                             after: change.after.iter().map(redact_injection).collect(),
                         }
@@ -274,7 +376,10 @@ fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
         }
         for change in &diff.injection_changes {
             let secret = if args.redact {
-                stable_redaction(&change.secret)
+                redactor
+                    .as_ref()
+                    .expect("redactor exists")
+                    .label(&change.secret)
             } else {
                 change.secret.clone()
             };
@@ -300,7 +405,7 @@ fn print_diff(diff: &DiffReport, args: &OutputArgs) -> Result<(), String> {
             );
         }
         println!(
-            "{} process{} added, {} removed; {} injection path{} changed",
+            "{} process{} added, {} removed; {} delivery method{} changed",
             diff.additions.len(),
             if diff.additions.len() == 1 { "" } else { "es" },
             diff.removals.len(),
@@ -449,6 +554,7 @@ mod tests {
                 adapter: "github-actions".into(),
             }],
             vec![],
+            vec![],
         );
         let current = Report::new(
             vec![
@@ -461,6 +567,7 @@ mod tests {
                     adapter: "github-actions".into(),
                 },
             ],
+            vec![],
             vec![],
         );
         assert_eq!(compare(&base, &current).additions.len(), 1);
@@ -477,12 +584,14 @@ mod tests {
                 adapter: "compose".into(),
             }],
             vec![],
+            vec![],
         );
         let current = Report::new(
             vec![Edge {
                 injection: "secret mount:/run/secrets/token".into(),
                 ..base.edges[0].clone()
             }],
+            vec![],
             vec![],
         );
         let diff = compare(&base, &current);
@@ -492,9 +601,10 @@ mod tests {
     }
 
     #[test]
-    fn redaction_is_stable_and_hides_name() {
-        let one = stable_redaction("DEPLOY_TOKEN");
-        assert_eq!(one, stable_redaction("DEPLOY_TOKEN"));
-        assert!(!one.contains("DEPLOY"));
+    fn redaction_uses_opaque_labels_within_one_output() {
+        let redactor = Redactor::from_names(["DEPLOY_TOKEN".into(), "NPM_TOKEN".into()]);
+        assert_eq!(redactor.label("DEPLOY_TOKEN"), "secret_001");
+        assert_eq!(redactor.label("NPM_TOKEN"), "secret_002");
+        assert!(!redactor.label("DEPLOY_TOKEN").contains("DEPLOY"));
     }
 }

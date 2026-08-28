@@ -85,6 +85,15 @@ test('mobile demo shows the real command, result, and exit status in its first v
   expect(position.lastLineBottom).toBeLessThanOrEqual(position.viewportHeight);
 });
 
+test('mobile demo explains sideways scrolling whenever its terminal clips', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo/?demo=1');
+  const terminal = page.locator('[data-terminal]');
+  const clipped = await terminal.evaluate(element => element.scrollWidth > element.clientWidth);
+  expect(clipped).toBe(true);
+  await expect(page.getByText('Scroll sideways to read the full command and process path.')).toBeVisible();
+});
+
 test('demo banner and sandbox controls stay visible after mobile scrolling', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/demo/?demo=1');
@@ -131,7 +140,7 @@ test('full-page navigation and browser Back focus and announce the destination h
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
-  await expect(page.locator('[data-route-status]')).toHaveText('Prove which process gets each secret name');
+  await expect(page.locator('[data-route-status]')).toHaveText('Check which process gets each secret name');
 });
 
 test('visitor copy uses the defined product terms and the 404 heading is plain', async ({ page }) => {
@@ -141,9 +150,9 @@ test('visitor copy uses the defined product terms and the 404 heading is plain',
   const script = readFileSync(join(root, 'site/main.js'), 'utf8');
   const styles = readFileSync(join(root, 'site/styles.css'), 'utf8');
   const readme = readFileSync(join(root, 'README.md'), 'utf8');
-  expect(landing).toContain('Prove which process gets each secret name');
+  expect(landing).toContain('Check which process gets each secret name');
   expect(landing).toContain('Reports secret names · never values');
-  expect(`${landing}\n${demo}\n${terms}\n${script}\n${styles}\n${readme}`).not.toMatch(/\bcredential\b|Reports names|\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|runtime CDN|Specimen 02|Field method|Known terrain|Outside the fence|To work on each half separately/i);
+  expect(`${landing}\n${demo}\n${terms}\n${script}\n${styles}\n${readme}`).not.toMatch(/\bcredential\b|Reports names|\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|runtime CDN|Specimen 02|Field method|Known terrain|Outside the fence|To work on each half separately|injection paths?/i);
   expect(readme).not.toMatch(/Rust \d+(?:\.\d+)? or newer/i);
   await page.goto('/404.html');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
@@ -165,6 +174,15 @@ test('landing page fits a 390px viewport', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('all three plain facts finish in the first 390px screen', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  for (const fact of await page.locator('.facts li').all()) {
+    const bottom = await fact.evaluate(element => element.getBoundingClientRect().bottom);
+    expect(bottom).toBeLessThanOrEqual(844);
+  }
 });
 
 test('landing page reflows without lost content at 200% mobile zoom', async ({ page }) => {

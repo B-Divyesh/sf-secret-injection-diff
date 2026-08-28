@@ -1,4 +1,4 @@
-use crate::model::{Edge, Report};
+use crate::model::{Declaration, Edge, Report};
 use crate::parsers::{
     looks_like_kubernetes, parse_compose, parse_dotenv, parse_github, parse_kubernetes, relative,
 };
@@ -77,14 +77,20 @@ pub fn scan(root: &Path) -> Result<Report, String> {
     collect(&root, &mut files, &mut warnings)
         .map_err(|error| format!("cannot scan {}: {error}", root.display()))?;
     let mut edges = Vec::<Edge>::new();
+    let mut declarations = Vec::<Declaration>::new();
     for path in files {
         let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
             continue;
         };
         let source = relative(&path, &base);
-        let result: Result<Vec<Edge>, io::Error> = if is_dotenv(name) {
-            parse_dotenv(&path, &source)
-        } else if is_compose(name) {
+        if is_dotenv(name) {
+            match parse_dotenv(&path, &source) {
+                Ok(found) => declarations.extend(found),
+                Err(error) => warnings.push(format!("{source}: {error}")),
+            }
+            continue;
+        }
+        let result: Result<Vec<Edge>, io::Error> = if is_compose(name) {
             match parse_compose(&path, &source) {
                 Ok((found, notes)) => {
                     edges.extend(found);
@@ -108,7 +114,7 @@ pub fn scan(root: &Path) -> Result<Report, String> {
             Err(error) => warnings.push(format!("{source}: {error}")),
         }
     }
-    Ok(Report::new(edges, warnings))
+    Ok(Report::new(edges, declarations, warnings))
 }
 
 #[cfg(test)]
@@ -122,5 +128,6 @@ mod tests {
         fs::create_dir(&path).unwrap();
         let report = scan(&path).unwrap();
         assert!(report.edges.is_empty());
+        assert!(report.declarations.is_empty());
     }
 }

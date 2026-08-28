@@ -1,1 +1,1 @@
-Prove which processes gain secret names before code merges.
+Check which processes get secret names before code merges.

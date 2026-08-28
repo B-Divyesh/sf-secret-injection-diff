@@ -1,7 +1,7 @@
 const transcript = [
   { text: '$ secret-injection-diff check . --baseline baseline.json', className: 'line-muted' },
   { text: '+ NPM_TOKEN -> github:job/verify/step/Publish package  [env:NPM_TOKEN]', className: 'line-add' },
-  { text: '1 process added, 0 removed; 0 injection paths changed', className: '' },
+  { text: '1 process added, 0 removed; 0 delivery methods changed', className: '' },
   { text: 'check failed: an unapproved process gained a secret name', className: 'line-add' },
   { text: 'exit 2', className: 'line-ok' }
 ];
@@ -51,6 +51,16 @@ const renderTranscript = (target, animate = false) => {
 };
 
 document.querySelectorAll('[data-terminal]').forEach(target => renderTranscript(target));
+
+const updateScrollHints = () => {
+  document.querySelectorAll('[data-scroll-hint]').forEach(hint => {
+    const terminal = hint.previousElementSibling?.querySelector('[data-terminal]');
+    hint.hidden = !terminal || terminal.scrollWidth <= terminal.clientWidth;
+  });
+};
+
+window.addEventListener('resize', updateScrollHints);
+window.requestAnimationFrame(updateScrollHints);
 
 document.querySelectorAll('[data-replay]').forEach(button => {
   button.addEventListener('click', () => {

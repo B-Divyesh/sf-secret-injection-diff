@@ -8,10 +8,10 @@
   },
   {
     "id": "dotenv-capability",
-    "claim": "Scans .env and .env.* files for uppercase secret names",
+    "claim": "Records .env names as declarations and binds them to a process when Compose env_file references them",
     "where": "README supported files",
     "test": "npm test -- --grep @claim:dotenv-capability",
-    "sandbox": "temporary directory with .env, .env.production, .env.local, ignored invalid names, and an unrelated filename"
+    "sandbox": "temporary .env files; assert declarations alone do not fail check, then assert Compose env_file binds the same name to a process"
   },
   {
     "id": "compose-capability",
@@ -43,7 +43,7 @@
   },
   {
     "id": "same-recipient-injection-change-exit-zero",
-    "claim": "Changing how the same secret name reaches the same process is reported without failing the check",
+    "claim": "Changing a delivery method for the same secret name and process is reported without failing the check",
     "where": "README behavior note",
     "test": "npm test -- --grep @claim:same-recipient-injection-change-exit-zero",
     "sandbox": "temporary Compose baseline using environment and current file using a service secret mount for the same API_TOKEN and api process"
@@ -78,10 +78,10 @@
   },
   {
     "id": "redaction",
-    "claim": "The --redact option replaces secret names with stable hashes",
+    "claim": "The --redact option replaces secret names with unique opaque labels in one output",
     "where": "README",
     "test": "npm test -- --grep @claim:redaction",
-    "sandbox": "run the bundled sample twice and a temporary injection-path change; assert stable tokens and no raw secret name"
+    "sandbox": "run bundled, 200-name, and delivery-method fixtures; assert opaque labels are unique and no raw secret name appears in any output field"
   },
   {
     "id": "isolated-demo",
@@ -92,17 +92,17 @@
   },
   {
     "id": "json-output",
-    "claim": "The CLI emits stable JSON for scripts",
+    "claim": "The CLI emits JSON for scripts",
     "where": "README",
     "test": "npm test -- --grep @claim:json-output",
     "sandbox": "scan the bundled sample with --json and validate schema and edge fields"
   },
   {
     "id": "no-network",
-    "claim": "The CLI has no network or telemetry client and the browser demo makes no third-party requests",
+    "claim": "The CLI makes no network syscalls and the browser demo makes no third-party requests",
     "where": "landing page, privacy page, and README",
     "test": "npm test -- --grep @claim:no-network",
-    "sandbox": "inspect CLI dependencies and capture every request in a fresh browser context"
+    "sandbox": "run demo, scan, snapshot, diff, and check under an LD_PRELOAD socket/connect/send recorder; capture every browser request in a fresh context"
   },
   {
     "id": "free-mit",
