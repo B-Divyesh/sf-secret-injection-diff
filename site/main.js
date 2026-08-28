@@ -6,6 +6,33 @@ const transcript = [
   { text: 'exit 2', className: 'line-ok' }
 ];
 
+const query = new window.URLSearchParams(window.location.search);
+if (query.get('demo') === '1' && !window.location.pathname.startsWith('/demo')) {
+  window.location.replace('/demo/?demo=1');
+}
+
+const routeStatus = document.createElement('p');
+routeStatus.className = 'visually-hidden';
+routeStatus.dataset.routeStatus = '';
+routeStatus.setAttribute('role', 'status');
+routeStatus.setAttribute('aria-live', 'polite');
+document.body.append(routeStatus);
+
+const focusDestination = () => {
+  if (!window.location.hash) return;
+  const destination = document.querySelector(window.location.hash);
+  const heading = destination?.matches('h1, h2, h3')
+    ? destination
+    : destination?.querySelector('h1, h2, h3');
+  if (!heading) return;
+  heading.setAttribute('tabindex', '-1');
+  heading.focus();
+  routeStatus.textContent = `${heading.textContent.trim()} section`;
+};
+
+window.addEventListener('hashchange', focusDestination);
+window.addEventListener('pageshow', () => window.requestAnimationFrame(focusDestination));
+
 const renderTranscript = (target, animate = false) => {
   if (!target) return;
   target.textContent = '';
@@ -50,7 +77,3 @@ document.querySelectorAll('[data-copy]').forEach(button => {
     }
   });
 });
-
-if ('serviceWorker' in navigator && location.hostname !== '127.0.0.1') {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
-}

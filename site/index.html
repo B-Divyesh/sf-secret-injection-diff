@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Secret Injection Diff — audit secret recipients</title>
-  <meta name="description" content="Map secret names to process boundaries and fail CI when an undeclared recipient appears.">
+  <title>Secret Injection Diff — track secret access</title>
+  <meta name="description" content="See which processes get secret names, then fail CI when a new process gains access.">
   <link rel="canonical" href="https://secret-injection-diff.sociobot.in/">
   <meta name="theme-color" content="#101917">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Secret Injection Diff — audit secret recipients">
-  <meta property="og:description" content="Map secret names to process boundaries and review scope changes locally.">
+  <meta property="og:title" content="Secret Injection Diff — track secret access">
+  <meta property="og:description" content="See which processes get secret names and review access changes locally.">
   <meta property="og:image" content="https://secret-injection-diff.sociobot.in/assets/social-card.webp">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Secret Injection Diff — audit secret recipients">
-  <meta name="twitter:description" content="Map secret names to process boundaries and review scope changes locally.">
+  <meta name="twitter:title" content="Secret Injection Diff — track secret access">
+  <meta name="twitter:description" content="See which processes get secret names and review access changes locally.">
   <meta name="twitter:image" content="https://secret-injection-diff.sociobot.in/assets/social-card.webp">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -38,8 +38,8 @@
         <h1>Prove which process gets each secret</h1>
         <p class="lede">For developers reviewing CI and deploy changes before an unexpected process gains a credential.</p>
         <div class="hero-action">
-          <a class="button" href="/demo/">Try it with sample data</a>
-          <span class="after-action">Watch a new recipient fail the check.</span>
+          <a class="button" href="/demo/?demo=1">Try it with sample data</a>
+          <span class="after-action">See the check fail when a new process gets a secret.</span>
         </div>
         <ul class="facts" aria-label="Product facts">
           <li>Runs locally · no network calls</li>
@@ -55,7 +55,7 @@
 
     <section class="section" aria-labelledby="preview-heading">
       <div class="shell">
-        <div class="section-heading"><p class="specimen">Specimen 02</p><div><h2 id="preview-heading">See the new edge before merge</h2><p>The check compares the current recipient graph with a committed baseline.</p></div></div>
+        <div class="section-heading"><p class="specimen">Specimen 02</p><div><h2 id="preview-heading">See which process gets a secret before merge</h2><p>The check compares current secret access with a committed baseline.</p></div></div>
         <div class="terminal-frame" aria-label="Recorded terminal output from the bundled demo">
           <div class="terminal-bar"><span>release.yml / recipient diff</span><span class="terminal-dots" aria-hidden="true">● ● ●</span></div>
           <pre data-terminal tabindex="0" aria-label="Recorded secret recipient diff" aria-live="polite"></pre>
@@ -65,18 +65,18 @@
 
     <section class="section" aria-labelledby="works-heading">
       <div class="shell">
-        <div class="section-heading"><p class="specimen">Field method</p><div><h2 id="works-heading">Review scope in three commands</h2><p>The baseline stays in your repository beside the configuration it describes.</p></div></div>
+        <div class="section-heading"><p class="specimen">Field method</p><div><h2 id="works-heading">Review secret access in three commands</h2><p>The baseline stays in your repository beside the configuration it describes.</p></div></div>
         <ol class="three-steps">
-          <li><h3>Scan configuration</h3><p>Read secret identifiers from supported files and map each recipient.</p></li>
-          <li><h3>Commit the baseline</h3><p>Review the JSON graph once, then approve it with the pull request.</p></li>
-          <li><h3>Check every change</h3><p>Exit code 2 stops CI when a new recipient edge appears.</p></li>
+          <li><h3>Scan configuration</h3><p>Read secret names from supported files and list each process that receives them.</p></li>
+          <li><h3>Commit the baseline</h3><p>Review the JSON list once, then approve it with the pull request.</p></li>
+          <li><h3>Check every change</h3><p>Exit code 2 stops CI when a new process gets a secret name.</p></li>
         </ol>
       </div>
     </section>
 
     <section class="section" aria-labelledby="boundaries-heading">
       <div class="shell split">
-        <div><p class="specimen">Known terrain</p><h2 id="boundaries-heading">Explicit adapters, clear limits</h2><ul class="plain-list"><li>.env and .env.*</li><li>Docker Compose</li><li>GitHub Actions</li><li>Kubernetes workloads</li></ul></div>
+        <div><p class="specimen">Known terrain</p><h2 id="boundaries-heading">Supported files and limits</h2><ul class="plain-list"><li>.env and .env.*</li><li>Docker Compose</li><li>GitHub Actions</li><li>Kubernetes workloads</li></ul></div>
         <div><p class="specimen">Outside the fence</p><h2>What it does not do</h2><ul class="plain-list"><li>It does not read secret stores.</li><li>It does not decrypt values.</li><li>It does not watch running processes.</li><li>It does not guess vendor behavior.</li></ul></div>
       </div>
     </section>
@@ -84,7 +84,7 @@
     <section class="section" id="install" aria-labelledby="install-heading">
       <div class="shell install-panel">
         <p class="specimen">Start with your repository</p>
-        <h2 id="install-heading">Install the local CLI</h2>
+        <h2 id="install-heading" tabindex="-1">Install the local CLI</h2>
         <div class="install-code"><code tabindex="0" aria-label="Scrollable install command">cargo install --git https://github.com/B-Divyesh/sf-secret-injection-diff</code><button class="copy-button" type="button" data-copy="cargo install --git https://github.com/B-Divyesh/sf-secret-injection-diff">Copy command</button></div>
         <p class="copy-status" data-copy-status aria-live="polite"></p>
         <p>Then run <code>secret-injection-diff scan .</code></p>

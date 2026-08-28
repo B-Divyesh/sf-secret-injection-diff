@@ -2,9 +2,9 @@
 
 Prove which processes gain secret names before a pull request merges.
 
-This local CLI is for developers reviewing environment scope across `.env`, Docker Compose, GitHub Actions, and Kubernetes files. It records recipient edges, compares them with an approved baseline, and returns exit code `2` when a new edge appears.
+This local CLI is for developers reviewing secret access across `.env`, Docker Compose, GitHub Actions, and Kubernetes files. It records which processes get secret names, compares them with an approved baseline, and returns exit code `2` when access expands.
 
-The scanner does not decrypt or store secret values. Reports contain identifiers, recipients, and injection paths. Use `--redact` before sharing a report.
+The scanner does not decrypt or store secret values. Reports contain secret names, process names, and injection paths. Use `--redact` before sharing a report.
 
 ## Try the isolated demo
 
@@ -14,18 +14,16 @@ cargo run -- demo
 
 The command copies the shipped sample project into a new temporary directory. It compares an approved workflow with a changed workflow and prints where the temporary report lives. It never reads or writes project data.
 
-The browser recording is at <https://secret-injection-diff.sociobot.in/demo>. It uses bundled text and makes no third-party requests.
+The browser recording is at <https://secret-injection-diff.sociobot.in/demo/?demo=1>. It uses bundled text and makes no third-party requests.
 
 ## Install
-
-Rust 1.85 or newer is required to build from source.
 
 ```sh
 cargo install --path .
 secret-injection-diff --help
 ```
 
-The factory can also package the release binary with `cargo build --release`.
+Run `npm run build` to package the release binary and build the documentation site.
 
 ## Use
 
@@ -50,7 +48,7 @@ Check the graph in CI:
 secret-injection-diff check . --baseline .secret-injection-baseline.json
 ```
 
-Exit code `0` means no new recipient edge. Exit code `2` means at least one undeclared edge appeared. Other errors use exit code `1`.
+Exit code `0` means no process gained a secret name. Exit code `2` means at least one undeclared process gained one. Invalid input uses exit code `1`.
 
 Use `diff` when you want the same comparison without a failing exit code:
 

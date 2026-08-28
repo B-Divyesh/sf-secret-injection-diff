@@ -15,6 +15,15 @@ for (const path of ['/', '/demo/', '/privacy/', '/terms/', '/404.html']) {
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('img:not([alt])')).toHaveCount(0);
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
+    await expect(page.locator('meta[property="og:title"]')).toHaveCount(1);
+    await expect(page.locator('meta[property="og:description"]')).toHaveCount(1);
+    await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(1);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations.filter(item => ['serious', 'critical'].includes(item.impact))).toEqual([]);
     expect(errors).toEqual([]);
@@ -38,6 +47,33 @@ test('demo controls work with the keyboard', async ({ page }) => {
   await page.getByRole('button', { name: 'Reset demo' }).focus();
   await page.keyboard.press('Space');
   await expect(page.locator('[data-demo-status]')).toHaveText('Demo reset. Sample data is ready.');
+});
+
+test('one-click demo query opens isolated sample mode with banner and reset', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\/demo\/\?demo=1$/);
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.locator('[data-terminal]')).toContainText('NPM_TOKEN');
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('[data-demo-status]')).toHaveText('Demo reset. Sample data is ready.');
+});
+
+test('root demo query enters sample mode directly', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page).toHaveURL(/\/demo\/\?demo=1$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Catch a process gaining a secret');
+});
+
+test('demo-to-install navigation moves focus, announces the section, and Back restores the demo', async ({ page }) => {
+  await page.goto('/demo/?demo=1');
+  await page.getByRole('link', { name: 'Start for real' }).press('Enter');
+  await expect(page).toHaveURL(/\/#install$/);
+  await expect(page.locator('#install-heading')).toBeFocused();
+  await expect(page.locator('[data-route-status]')).toHaveText('Install the local CLI section');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/demo\/\?demo=1$/);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
 
 test('landing page fits a 390px viewport', async ({ page }) => {

@@ -1,12 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const binary = join(root, 'target/debug/secret-injection-diff');
 const run = (args, options = {}) => spawnSync(binary, args, { cwd: root, encoding: 'utf8', ...options });
+const snapshotFiles = directory => Object.fromEntries(
+  readdirSync(directory, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => {
+      const path = join(entry.parentPath, entry.name);
+      return [path.slice(directory.length + 1), readFileSync(path, 'utf8')];
+    })
+);
 
 test('@claim:adapters scans four supported configuration types', () => {
   const result = run(['scan', 'examples/demo/after', '--json']);
@@ -31,6 +39,25 @@ test('@claim:scope-change exits 2 when a new recipient appears', () => {
   expect(result.stdout).toContain('1 added, 0 removed');
 });
 
+test('@claim:check-no-change-exit-zero exits 0 when access does not expand', () => {
+  const sandbox = mkdtempSync(join(tmpdir(), 'sid-claim-zero-'));
+  const project = join(sandbox, 'project');
+  cpSync(join(root, 'examples/demo/before'), project, { recursive: true });
+  const baseline = join(sandbox, 'baseline.json');
+  expect(run(['snapshot', project, '--output', baseline]).status).toBe(0);
+  const result = run(['check', project, '--baseline', baseline]);
+  expect(result.status).toBe(0);
+  expect(result.stdout).toContain('No secret recipient changes.');
+});
+
+test('@claim:invalid-input-exit-one exits 1 with a useful error for invalid input', () => {
+  const missing = join(tmpdir(), `sid-missing-${process.pid}-${Date.now()}`);
+  const result = run(['scan', missing]);
+  expect(result.status).toBe(1);
+  expect(result.stderr).toContain('error:');
+  expect(result.stderr).toMatch(/does not exist|no such file/i);
+});
+
 test('@claim:values-excluded keeps fixture values out of reports', () => {
   const result = run(['scan', 'examples/demo/after', '--json']);
   expect(result.status).toBe(0);
@@ -49,7 +76,8 @@ test('@claim:redaction replaces names in shared output', () => {
 });
 
 test('@claim:isolated-demo uses a new temporary workspace', () => {
-  const before = readdirSync(root, { recursive: true }).sort();
+  const samples = join(root, 'examples/demo');
+  const before = snapshotFiles(samples);
   const result = run(['demo']);
   expect(result.status).toBe(0);
   const first = result.stdout.split('\n')[0];
@@ -57,7 +85,7 @@ test('@claim:isolated-demo uses a new temporary workspace', () => {
   expect(first).toContain(tmpdir());
   expect(first).not.toContain(root);
   expect(result.stdout).toMatch(/expected result: check would exit 2/i);
-  expect(readdirSync(root, { recursive: true }).sort()).toEqual(before);
+  expect(snapshotFiles(samples)).toEqual(before);
 });
 
 test('@claim:json-output emits parseable stable JSON', () => {
@@ -124,12 +152,26 @@ test('@claim:site-data-free site has no analytics, accounts, forms, cookies, or 
   const storage = await page.evaluate(async () => ({
     local: localStorage.length,
     session: sessionStorage.length,
-    indexedDb: (await indexedDB.databases()).length
+    indexedDb: (await indexedDB.databases()).length,
+    caches: await caches.keys(),
+    serviceWorkers: await navigator.serviceWorker.getRegistrations().then(items => items.length)
   }));
-  expect(storage).toEqual({ local: 0, session: 0, indexedDb: 0 });
+  expect(storage).toEqual({ local: 0, session: 0, indexedDb: 0, caches: [], serviceWorkers: 0 });
   const scripts = await page.locator('script[src]').evaluateAll(elements => elements.map(element => element.src));
   expect(scripts.every(src => new URL(src).origin === 'http://127.0.0.1:4173')).toBe(true);
   expect(readFileSync(join(root, 'site/main.js'), 'utf8')).not.toMatch(/analytics|gtag|segment|mixpanel|posthog/i);
+  expect(existsSync(join(root, 'site/public/sw.js'))).toBe(false);
+});
+
+test('@claim:build-artifacts creates the documented site and CLI paths', () => {
+  const result = spawnSync('npm', ['run', 'build'], { cwd: root, encoding: 'utf8' });
+  expect(result.status, result.stderr).toBe(0);
+  const site = join(root, 'dist/site/index.html');
+  const cli = join(root, 'dist/bin/secret-injection-diff');
+  expect(existsSync(site)).toBe(true);
+  expect(existsSync(cli)).toBe(true);
+  expect(statSync(site).size).toBeGreaterThan(0);
+  expect(statSync(cli).size).toBeGreaterThan(0);
 });
 
 test('@claim:explicit-adapter-limits ignores vendor configs and has no process watcher', () => {

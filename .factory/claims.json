@@ -14,6 +14,20 @@
     "sandbox": "temporary directory copied from bundled before and after samples"
   },
   {
+    "id": "check-no-change-exit-zero",
+    "claim": "The check command returns exit code 0 when no process gains a secret name",
+    "where": "README",
+    "test": "npm test -- --grep @claim:check-no-change-exit-zero",
+    "sandbox": "temporary sample project checked against a baseline made from the same files"
+  },
+  {
+    "id": "invalid-input-exit-one",
+    "claim": "Invalid input returns exit code 1 with an error",
+    "where": "README",
+    "test": "npm test -- --grep @claim:invalid-input-exit-one",
+    "sandbox": "unique missing temporary path; assert process status and actionable stderr"
+  },
+  {
     "id": "values-excluded",
     "claim": "Secret values never appear in reports",
     "where": "landing page, privacy page, and README",
@@ -71,10 +85,17 @@
   },
   {
     "id": "site-data-free",
-    "claim": "The site has no analytics, cookies, accounts, forms, or browser data storage",
+    "claim": "The site has no analytics, cookies, accounts, forms, service worker, or browser data storage",
     "where": "privacy page",
     "test": "npm test -- --grep @claim:site-data-free",
-    "sandbox": "fresh browser context; visit every route and assert same-origin requests, no cookies/storage/forms/account controls, and no analytics scripts"
+    "sandbox": "fresh production build; visit every route and assert no service-worker registrations, Cache Storage, cookies, local/session/IndexedDB, forms, accounts, analytics, or third-party requests"
+  },
+  {
+    "id": "build-artifacts",
+    "claim": "npm run build creates the site in dist/site and the release CLI in dist/bin",
+    "where": "README",
+    "test": "npm test -- --grep @claim:build-artifacts",
+    "sandbox": "production build; assert non-empty dist/site/index.html and dist/bin/secret-injection-diff"
   },
   {
     "id": "explicit-adapter-limits",
