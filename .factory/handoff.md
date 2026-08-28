@@ -1,37 +1,30 @@
-# Perfection-loop round 2 handoff — Secret Injection Diff
+# Adversarial review 3 handoff — Secret Injection Diff
 
 ## Result
 
-**PASS.** Repair commit `d67773d971ba810659d10490bbffcf325f8cd585` is pushed to `main` and deployed to <https://secret-injection-diff.sociobot.in>.
+**FAIL.** The complete report is `.factory/review-3.md`. No product code was modified.
 
-The repair closes all findings in `review-1.md` and `review-2.md`. It preserves the credential-conservatory visual system while correcting the two remaining product defects: full-document route focus/announcement and the first-screen name-only wording. The 404 headline is now plain.
+The review found three new blocking product/demo defects, reopened two earlier terminology findings as still incomplete, and recorded eleven minor copy/claims findings. The most important defect is a false CI failure: changing only how `API_TOKEN` reaches the same `compose:service/api` recipient returns exit 2 and says a new recipient appeared.
 
-## What changed
+## Verification performed
 
-- Every normal page load, Back/Forward restoration, and hash destination moves focus to its heading and announces it. This includes keyboard Home → Demo → Back.
-- The first screen now says **secret name** consistently: “Prove which process gets each secret name,” with a matching lede and privacy fact. The demo and footer use the same term.
-- The designed 404 says **Page not found** and still carries complete route metadata and legal navigation.
-- The one-click `?demo=1` path remains isolated: its banner, reset action, bundled `NPM_TOKEN` change, and zero-storage behavior were cold-checked live.
-- `.factory/catalog-description.txt` now reads “Prove only approved processes gain secret names before merge.” (61 characters, verb-first).
+- Opened the live site cold in fresh Chromium contexts at 390 × 844 and 1440 × 900.
+- Exercised the one-click browser demo, replay, reset, storage, request origins, and the CLI demo in a temporary directory.
+- Cloned commit `d13343334846887fe4a1056b4509bdb2b46af3de` to `/tmp/secret-injection-diff-review3-clean`, ran `npm ci`, then ran every one of the 15 exact claim commands separately; all passed.
+- Ran `npm run lint` and `npm run typecheck`; both passed. The `build-artifacts` claim ran `npm run build` successfully.
+- Crawled all rendered links and checked metadata, HTTP 404 behavior, route focus/Back behavior, and mobile/desktop overflow.
+- Ran Axe 4.10.2 on home, demo, privacy, terms, and 404 at both viewports after styles loaded; zero serious/critical violations.
+- Ran `/opt/fleet/lib/verify-url.sh` against the live root; it passed.
+- Read every earlier review, polish report, verification report, and handoff, then checked each earlier finding against live behavior and current code.
 
-## Exact verification evidence
+## Reproduction for the primary blocker
 
-| Check | Result |
-| --- | --- |
-| Clean clone | `/tmp/sid-polish2-clean-jpcy9V`: `npm ci` passed. Each of the 15 exact commands from `.factory/claims.json` passed and selected exactly one tagged test. |
-| Unit/integration/browser | `npm test`: 8 Rust tests and 42 Playwright tests passed. |
-| Quality gates | `npm run lint`, `npm run typecheck`, `npm run build`, `npm audit --audit-level=high`, and `cargo package --allow-dirty` passed. The package contained 60 files (607.3 KiB unpacked). |
-| Local build output | `npm run build` produced `dist/site` and `dist/bin/secret-injection-diff`; JS gzip 1,286 bytes and CSS gzip 2,812 bytes. |
-| Live baseline | `/opt/fleet/lib/verify-url.sh https://secret-injection-diff.sociobot.in/ .factory/evidence/polish-2/live-root` passed: HTTP 200, title/lang/main/h1/alt checks, no console errors. |
-| Live accessibility | Fresh 390 × 844 contexts found zero axe serious/critical violations, zero overflow, one h1/main, and no console errors on all five routes. Evidence: `.factory/evidence/polish-2/live-routes/live-routes.json`. |
-| Live interaction/privacy | Fresh Home → Demo → Back focuses/announces each heading. Demo shows its banner and `NPM_TOKEN`, resets successfully, makes only same-origin requests, and leaves cookies, web storage, IndexedDB, Cache Storage, and service-worker registrations empty. Evidence: `.factory/evidence/polish-2/live-routes/live-interactions.json`. |
-| Live 404 | <https://secret-injection-diff.sociobot.in/does-not-exist> returned HTTP 404 and “Page not found.” |
-| Lighthouse mobile | Performance 100, Accessibility 100, Best Practices 100, SEO 100; FCP 812 ms, LCP 1,507 ms, TBT 1 ms, CLS 0. Evidence: `.factory/evidence/polish-2/lighthouse-live.json`. |
+1. Snapshot a Compose service `api` with `API_TOKEN` under `environment`.
+2. Change the same service and same secret name to a Compose service secret mounted as `/run/secrets/token`.
+3. Run `secret-injection-diff check` against the baseline.
 
-## Deployment
+Observed: exit 2, one addition and one removal, then “an undeclared recipient gained a secret name.” Both edges have recipient `compose:service/api`; only `injection` changed.
 
-Built with the work-order command `npm ci && npm run build:site`, then deployed with `/opt/fleet/lib/deploy-static.sh secret-injection-diff dist/site`. Azure Static Web Apps deployment `137525fd-9e4b-4af7-9998-7cdd9f6dbf2d` completed successfully.
+## Next steps
 
-## Known gaps / next steps
-
-None. The product makes no offline-use claim, so no offline persistence test is applicable; the deterministic local CLI has no missing AI step.
+Address every finding in `.factory/review-3.md`, especially F-3-1 through F-3-5, add the requested negative-boundary and demo-viewport tests, and repeat the review from a clean clone. The repository remains buildable and only review documentation is changed by this work order.
