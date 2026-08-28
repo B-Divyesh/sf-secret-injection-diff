@@ -1,14 +1,14 @@
 {
   "measured_at": "2026-08-28",
-  "url": "https://secret-injection-diff.sociobot.in/ after perfection-loop round 4 deployment",
+  "url": "https://secret-injection-diff.sociobot.in/ after perfection-loop round 5 deployment",
   "lighthouse": {
     "performance": 100,
     "accessibility": 100,
     "best_practices": 100,
     "seo": 100,
-    "first_contentful_paint_ms": 928,
-    "largest_contentful_paint_ms": 1536,
-    "total_blocking_time_ms": 23,
+    "first_contentful_paint_ms": 870,
+    "largest_contentful_paint_ms": 1516,
+    "total_blocking_time_ms": 8,
     "cumulative_layout_shift": 0
   },
   "budgets": {
@@ -20,7 +20,7 @@
   },
   "accessibility_scan": "Axe 4.10.2: zero serious or critical violations across five routes at 1440x900 and 390x844",
   "browser": "Playwright Chromium 1.58.2 at desktop and 390x844",
-  "automated_tests": "9 Rust tests and 56 Playwright tests passed; all 21 claim commands passed separately in clean clone /tmp/sid-polish4-final-clean-amaVVm/repo at ca25ce323341460b507edbc145f7a8fe52b960dc",
+  "automated_tests": "9 Rust tests and 57 Playwright tests passed; all 21 claim commands passed separately in clean clone /tmp/sid-polish5-clean-9MqRQo/repo at 939fc1f959def63919bd3188e77903442484e5ff",
   "strict_lint": "cargo fmt, Clippy -D warnings, and ESLint passed",
-  "live_artifact_parity": "15 deployed HTML/runtime files match dist/site byte-for-byte"
+  "live_artifact_parity": "15 deployed HTML/runtime files match dist/site byte-for-byte; evidence: /work/.evidence/polish5/public-live/live-audit.json"
 }

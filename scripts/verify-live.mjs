@@ -6,16 +6,17 @@ import AxeBuilder from '@axe-core/playwright';
 import { chromium } from '@playwright/test';
 
 const base = new URL(process.argv[2] ?? 'https://secret-injection-diff.sociobot.in/');
+const canonicalBase = new URL(process.env.CANONICAL_BASE ?? 'https://secret-injection-diff.sociobot.in/');
 const evidenceDirectory = resolve(process.argv[3] ?? '.factory/evidence/polish-3/live');
 const distDirectory = resolve(import.meta.dirname, '../dist/site');
 mkdirSync(evidenceDirectory, { recursive: true });
 
 const routes = [
-  { path: '/', title: 'Secret Injection Diff — track secret access', canonical: new URL('/', base).href },
-  { path: '/demo/?demo=1', title: 'Demo — Secret Injection Diff', canonical: new URL('/demo/', base).href },
-  { path: '/privacy/', title: 'Privacy — Secret Injection Diff', canonical: new URL('/privacy/', base).href },
-  { path: '/terms/', title: 'Terms — Secret Injection Diff', canonical: new URL('/terms/', base).href },
-  { path: '/404.html', title: 'Not found — Secret Injection Diff', canonical: new URL('/404.html', base).href }
+  { path: '/', title: 'Secret Injection Diff — track secret access', canonical: new URL('/', canonicalBase).href },
+  { path: '/demo/?demo=1', title: 'Demo — Secret Injection Diff', canonical: new URL('/demo/', canonicalBase).href },
+  { path: '/privacy/', title: 'Privacy — Secret Injection Diff', canonical: new URL('/privacy/', canonicalBase).href },
+  { path: '/terms/', title: 'Terms — Secret Injection Diff', canonical: new URL('/terms/', canonicalBase).href },
+  { path: '/404.html', title: 'Not found — Secret Injection Diff', canonical: new URL('/404.html', canonicalBase).href }
 ];
 const viewports = [
   { name: 'desktop', width: 1440, height: 900 },
@@ -66,6 +67,11 @@ for (const viewport of viewports) {
     assert.ok(structure.overflow <= 1, `${route.path} overflows at ${viewport.width}px`);
     assert.equal(structure.privacyLink, '/privacy/');
     assert.equal(structure.termsLink, '/terms/');
+    if (route.path === '/terms/') {
+      const termsText = await page.locator('main').textContent();
+      assert.equal(await page.getByRole('heading', { name: 'Changes' }).count(), 0);
+      assert.doesNotMatch(termsText ?? '', /Material changes will update|will update the effective date/i);
+    }
     assert.deepEqual(errors, []);
     const axe = await new AxeBuilder({ page }).analyze();
     const serious = axe.violations.filter(item => ['serious', 'critical'].includes(item.impact));
@@ -222,6 +228,7 @@ await browser.close();
 const report = {
   checkedAt: new Date().toISOString(),
   baseUrl: base.href,
+  canonicalBase: canonicalBase.href,
   routeResults,
   unknownRoute: { status: unknownResponse.status(), title: 'Not found — Secret Injection Diff', heading: 'Page not found' },
   demo: { firstScreen, terminalClips, persistentBanner, browserStorage, origins: [...demoOrigins], errors: demoErrors },

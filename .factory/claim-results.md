@@ -1,8 +1,8 @@
-# Claim verification — 2026-08-28 perfection-loop round 4
+# Claim verification — 2026-08-28 perfection-loop round 5
 
 Every command in `.factory/claims.json` was run separately after `npm ci` in a
-fresh clone at `/tmp/sid-polish4-final-clean-amaVVm/repo`, commit
-`ca25ce323341460b507edbc145f7a8fe52b960dc`. All 21 commands selected exactly
+fresh clone at `/tmp/sid-polish5-clean-9MqRQo/repo`, commit
+`939fc1f959def63919bd3188e77903442484e5ff`. All 21 commands selected exactly
 one tagged test and passed.
 
 | Claim | Result | Observable evidence |
