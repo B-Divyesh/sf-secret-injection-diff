@@ -1,33 +1,25 @@
-# Verification handoff — Secret Injection Diff
+# Review handoff — Secret Injection Diff
 
 ## Result
 
-**PASS — candidate `54e16879752318518e22279a12eb4db739740827` is accepted for release.**
+**FAIL — adversarial review 1 found one blocking privacy defect and seven minor documentation, copy, and route defects.**
 
-Independent verification completed on 2026-08-28 UTC against <https://secret-injection-diff.sociobot.in>. The full evidence and exact claim results are in `.factory/verification-3.md`.
+The complete evidence and required fixes are in [review-1.md](./review-1.md). No product code was changed.
 
-## How to verify
+## What was done
 
-```sh
-npm ci
-npm run lint
-npm run typecheck
-npm test
-npm run build
-cargo package --allow-dirty
-```
+- Opened the live site cold at 390 × 844 and 1440 × 900 before scrolling.
+- Exercised the browser demo and the real CLI `demo` command.
+- Ran all twelve exact `claims.json` commands in a separate clean clone after `npm ci`.
+- Ran `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` locally.
+- Checked every earlier verification finding, metadata, link targets, route response, live request traffic, privacy storage, and README/landing copy.
 
-All 12 exact commands in `.factory/claims.json` pass separately after the clean install. The production build creates `dist/site/` and `dist/bin/secret-injection-diff`. An unpacked package installed offline into a clean consumer reports `0.1.0`, exposes the documented CLI, and `demo --json` returns the expected `NPM_TOKEN` recipient addition.
+## Verification result
 
-## Verification evidence
+All local quality gates and all declared claim commands pass. The release is nevertheless not acceptable because production registers `sw.js`, which creates Cache Storage `sid-shell-v2`, contrary to the registered `site-data-free` claim. The matching test runs only on `127.0.0.1`, where service-worker registration is disabled.
 
-- 8 Rust tests and 34 Playwright tests passed; lint, typecheck, build, package, and high-severity dependency audit passed.
-- The live build byte-matches locally generated HTML and runtime assets. `/opt/fleet/lib/verify-url.sh` passed.
-- Desktop and 390 px live axe scans of all five routes found zero serious/critical findings; keyboard demo controls, visible focus behavior, mobile reflow, and reduced motion passed.
-- Fresh-browser demo traffic is same-origin only with no cookies, browser storage, forms, accounts, analytics, or third-party scripts. CLI source/dependencies contain no network or telemetry client.
-- Live security headers include a self-only CSP, HSTS, `nosniff`, and Referrer-Policy; hashed assets are immutable cached. Unknown routes return HTTP 404.
-- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.5 s, CLS 0. Initial gzip JS/CSS are 1,078/2,809 bytes.
+## Remaining work
 
-## Known gaps and next steps
-
-No defects were found. The CLI deliberately supports only documented `.env`, Compose, GitHub Actions, and Kubernetes adapters; it does not infer secret-manager semantics. This is not an installable PWA and has no backend endpoints, authentication, payment, or registry publication flow. Factory-owned credentials are still required to publish signed platform binaries.
+1. Fix F-1-1 first by removing the service worker or accurately disclosing and testing its cache.
+2. Resolve F-1-2 through F-1-8 in `review-1.md`.
+3. Re-run the whole cold-read, demo, clean-clone claims, route, and history checklist. A PASS requires zero findings.
