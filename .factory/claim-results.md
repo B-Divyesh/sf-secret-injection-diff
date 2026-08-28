@@ -1,6 +1,6 @@
-# Claim verification — 2026-08-28 perfection-loop round 1
+# Claim verification — 2026-08-28 perfection-loop round 2
 
-Every command in `.factory/claims.json` was run separately after `npm ci` in clean clone `/tmp/sid-polish-clean-jThVZQ` at commit `9cf68ab0f7ffad50a4a582ec5375c8d52ae1d881`. Each command selected exactly one tagged test and passed.
+Every command in `.factory/claims.json` was run separately after `npm ci` in clean clone `/tmp/sid-polish2-clean-jpcy9V` at repair commit `d67773d971ba810659d10490bbffcf325f8cd585`. Each command selected exactly one tagged test and passed.
 
 | Claim | Result | Observable evidence |
 | --- | --- | --- |
