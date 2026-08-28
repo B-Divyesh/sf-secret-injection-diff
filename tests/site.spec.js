@@ -89,6 +89,7 @@ test('demo banner and sandbox controls stay visible after mobile scrolling', asy
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/demo/?demo=1');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
   const banner = page.locator('.demo-banner');
   await expect(banner).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
