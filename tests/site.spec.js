@@ -139,10 +139,12 @@ test('visitor copy uses the defined product terms and the 404 heading is plain',
   const demo = readFileSync(join(root, 'site/demo/index.html'), 'utf8');
   const terms = readFileSync(join(root, 'site/terms/index.html'), 'utf8');
   const script = readFileSync(join(root, 'site/main.js'), 'utf8');
+  const styles = readFileSync(join(root, 'site/styles.css'), 'utf8');
   const readme = readFileSync(join(root, 'README.md'), 'utf8');
   expect(landing).toContain('Prove which process gets each secret name');
   expect(landing).toContain('Reports secret names · never values');
-  expect(`${landing}\n${demo}\n${terms}\n${script}\n${readme}`).not.toMatch(/\bcredential\b|Reports names|\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|runtime CDN/i);
+  expect(`${landing}\n${demo}\n${terms}\n${script}\n${styles}\n${readme}`).not.toMatch(/\bcredential\b|Reports names|\brecipient(s)?\b|\bedges?\b|\bgraph\b|\badapters?\b|\bidentifiers?\b|runtime CDN|Specimen 02|Field method|Known terrain|Outside the fence|To work on each half separately/i);
+  expect(readme).not.toMatch(/Rust \d+(?:\.\d+)? or newer/i);
   await page.goto('/404.html');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });
