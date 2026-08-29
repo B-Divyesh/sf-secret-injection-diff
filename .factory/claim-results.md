@@ -1,9 +1,11 @@
-# Claim verification — 2026-08-28 perfection-loop round 5
+# Claim verification — 2026-08-29 perfection-loop round 6
 
 Every command in `.factory/claims.json` was run separately after `npm ci` in a
-fresh clone at `/tmp/sid-polish5-clean-9MqRQo/repo`, commit
-`939fc1f959def63919bd3188e77903442484e5ff`. All 21 commands selected exactly
-one tagged test and passed.
+fresh clone at `/tmp/sid-polish6-clean-1SGdS9/repo`, code-repair commit
+`166c74823b869555a9b5c1c14856b3f3ca73bd02` and release-marker commit
+`91a45d95516d4b84f68d3cfafa8655195420ae05`. All 21 commands selected exactly
+one tagged test and passed. The machine-readable command/status record is
+`/tmp/sid-polish6-clean-1SGdS9/claim-results.json` in the verification worker.
 
 | Claim | Result | Observable evidence |
 | --- | --- | --- |
@@ -26,7 +28,7 @@ one tagged test and passed.
 | `no-decryption-storage` | Pass | Sentinel value stays out of output; source remains unchanged and no output file appears. |
 | `snapshot-only-write` | Pass | Only explicit snapshot writes the requested baseline. |
 | `site-data-free` | Pass | Five routes create no service worker, Cache Storage, cookies, web storage, forms, accounts, analytics, or third-party requests. |
-| `build-artifacts` | Pass | `npm run build` creates non-empty `dist/site/index.html` and `dist/bin/secret-injection-diff`. |
+| `build-artifacts` | Pass | Serial preflight runs `npm run build` before Playwright starts, then the tagged test confirms non-empty `dist/site/index.html` and `dist/bin/secret-injection-diff`. |
 | `explicit-adapter-limits` | Pass | Vault and SOPS-style files yield no access; source has no vendor integration or process watcher. |
 
 `every registered claim has exactly one tagged test` also verifies unique IDs
