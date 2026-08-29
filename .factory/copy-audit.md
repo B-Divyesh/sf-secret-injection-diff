@@ -56,7 +56,7 @@ Count method: whitespace-separated words. Labels and fragments are included beca
 | Then run secret-injection-diff scan. | 4 | Pass |
 | Scroll sideways to read the full command and process path. | 10 | Mobile terminal instruction |
 | Map secret names to processes before code merges. | 8 | Pass |
-| v0.1.0 · build 2026-08-28 | 4 | Build label |
+| v0.1.0 · build 2026-08-29 | 4 | Build label |
 | Terms | 1 | Navigation label |
 | Built by Param Factory | 4 | Attribution link |
 
@@ -74,7 +74,7 @@ No line exceeds 22 words. No line contains a banned marketing word. The first sc
 | A supported configuration format | file type |
 | The isolated example | demo |
 
-Catalog description: “Check which processes get secret names before code merges.” (56 characters)
+Catalog description: “Check secret-name access before code merges.” (44 characters; verb-first, under 120 characters)
 
 ## Error page
 

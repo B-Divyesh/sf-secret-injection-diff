@@ -1,1 +1,1 @@
-Check which processes get secret names before code merges.
+Check secret-name access before code merges.
