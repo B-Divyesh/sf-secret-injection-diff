@@ -261,6 +261,13 @@ test('static host config preserves HTTP 404 and gives assets immutable caching',
   expect(config.routes.find(route => route.route === '/assets/*').headers['Cache-Control']).toContain('immutable');
 });
 
+test('browser tests do not rebuild the preview output', () => {
+  const claimTests = readFileSync(join(root, 'tests/claims.spec.js'), 'utf8');
+  expect(claimTests).not.toMatch(/spawnSync\([^\n]*npm[^\n]*(?:build|build:site)/);
+  expect(claimTests).not.toMatch(/(?:rmSync|emptyOutDir|vite\s+build)/);
+  expect(readFileSync(join(root, 'package.json'), 'utf8')).toContain('"test": "npm run test:cli && npm run test:build-artifacts && playwright test"');
+});
+
 test('local links resolve', async ({ page, request }) => {
   await page.goto('/');
   const hrefs = await page.locator('a').evaluateAll(links => links.map(link => link.getAttribute('href')).filter(Boolean));

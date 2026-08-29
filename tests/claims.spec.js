@@ -411,9 +411,7 @@ test('@claim:site-data-free site has no analytics, accounts, forms, cookies, or 
   expect(existsSync(join(root, 'site/public/sw.js'))).toBe(false);
 });
 
-test('@claim:build-artifacts creates the documented site and CLI paths', () => {
-  const result = spawnSync('npm', ['run', 'build'], { cwd: root, encoding: 'utf8' });
-  expect(result.status, result.stderr).toBe(0);
+test('@claim:build-artifacts confirms the serial preflight created the documented site and CLI paths', () => {
   const site = join(root, 'dist/site/index.html');
   const cli = join(root, 'dist/bin/secret-injection-diff');
   expect(existsSync(site)).toBe(true);
